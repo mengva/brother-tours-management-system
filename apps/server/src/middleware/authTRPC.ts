@@ -2,13 +2,13 @@ import { t } from "../server/trpc/procedures";
 import { TRPCError } from "@trpc/server";
 import db from "../config/db";
 import { Helper, tRPCErrorServices } from "../utils";
-import { TokenName } from "@/server/packages/utils";
+import { tokenName } from "@/server/packages/utils";
 
 export class tRPCUserAuthMiddleware {
 
     public static isUserAlreadyAuth = t.middleware(async ({ ctx, next }) => {
 
-        const token = ctx.getCookie(TokenName);
+        const token = ctx.getCookie(tokenName);
 
         if (token) {
             try {
@@ -38,7 +38,7 @@ export class tRPCUserAuthMiddleware {
         // Determine the token name based on the user's role (staff in this case)
 
         // 1. Get token from cookies
-        const token = ctx.getCookie(TokenName);
+        const token = ctx.getCookie(tokenName);
         const currentUA = ctx.userAgent; // Get current User-Agent from Request Headers
 
         if (!token) {

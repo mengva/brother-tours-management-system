@@ -1,3 +1,4 @@
+import { tokenName } from "@/server/packages/utils";
 import db from "../config/db";
 import { CookieServices, HandlerSuccess, Helper } from "../utils";
 import { Context as HonoContext } from "hono";
@@ -60,7 +61,7 @@ export class RefreshTokenMiddleware {
         }
     }
 
-    public static async refreshUserToken(ctx: HonoContext, tokenName: string) {
+    public static async refreshUserToken(ctx: HonoContext) {
         // ... (Keep the role and cookie logic same as before) ...
         const oldToken = getCookie(ctx, tokenName);
         const currentUA = ctx.req.header("user-agent") || "";

@@ -2,7 +2,7 @@ import type { MyContext } from "@/server/server/trpc/context";
 import { tRPCAuthServices } from "../../utils";
 import { HandlerSuccess, tRPCErrorServices } from "@/server/utils";
 import type { ServerResponseDto } from "@/server/packages/types";
-import { TokenName } from "@/server/packages/utils";
+import { tokenName } from "@/server/packages/utils";
 
 export class tRPCUserAuthMutationServices {
     public static async signIn(ctx: MyContext): Promise<ServerResponseDto | void> {
@@ -43,7 +43,7 @@ export class tRPCUserAuthMutationServices {
     public static async signOut(ctx: MyContext): Promise<ServerResponseDto | void> {
         try {
 
-            ctx.deleteCookie(TokenName); // Clear cookie from the client side as well
+            ctx.deleteCookie(tokenName); // Clear cookie from the client side as well
 
             ctx.userInfo = {
                 userId: '' as string,

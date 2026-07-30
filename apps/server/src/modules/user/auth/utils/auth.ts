@@ -1,14 +1,14 @@
 import { TRPCError } from "@trpc/server";
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { redis } from "@/server/lib/redis";
 import { MailServices } from "@/server/lib/mail";
 import { CookieServices, HandlerSuccess, Helper, tRPCErrorServices, type MailOptionsDto } from "@/server/utils";
-import { userCredentials, users } from "../../entities";
-import db from "@/server/config/db";
 import type { ServerResponseDto } from "@/server/packages/types";
 import type { MyContext } from "@/server/server/trpc/context";
 import type { ZodValidationSendOTPToEmail, ZodValidationServerResetPassword, ZodValidationSignIn, ZodValidationSignInOTP } from "@/server/packages/validations";
-import { TokenName } from "@/server/packages/utils";
+import { tokenName } from "@/server/packages/utils";
+import db from "@/server/config/db";
+import { userCredentials, users } from "@/server/db";
 
 export class tRPCAuthServices {
 
@@ -30,7 +30,6 @@ export class tRPCAuthServices {
             const userInfo = await db.query.users.findFirst({
                 where: (users, { eq, and }) => and(
                     eq(users.email, info.email),
-                    inArray(users.role, ["Owner", "Staff"]),
                     eq(users.isActive, true),
                 ),
                 with: {
@@ -73,7 +72,7 @@ export class tRPCAuthServices {
             // 7. Generate and set access token in cookies
             const token = await Helper.generateToken(userPayload);
 
-            ctx.setCookie(TokenName, token, CookieServices.cookieOption);
+            ctx.setCookie(tokenName, token, CookieServices.cookieOption);
 
             return HandlerSuccess.success("Sign in successful");
         } catch (error) {
@@ -124,11 +123,8 @@ export class tRPCAuthServices {
                         email: info.email,
                         phoneNumber: info.phoneNumber,
                         gender: info.gender,
-                        birthDay: info.birthdate,
-                        village: info.village,
-                        district: info.district,
-                        province: info.province,
                         userAgent: userAgent,
+                        role: "Customer"
                     })
                     .returning({
                         userId: users.id,
@@ -299,7 +295,7 @@ export class tRPCAuthServices {
             await redis.del(`reset_email_sign_in:${tokenFromCookie}`);
             ctx.setCookie("reset_token_sign_in", "", { maxAge: 0 }); // Clear the OTP session cookie
 
-            ctx.setCookie(TokenName, token, CookieServices.cookieOption);
+            ctx.setCookie(tokenName, token, CookieServices.cookieOption);
 
             return HandlerSuccess.success("OTP Sign in successful");
 
