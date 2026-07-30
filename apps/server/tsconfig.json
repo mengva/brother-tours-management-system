@@ -1,0 +1,31 @@
+// "target": "ESNext",
+// "module": "NodeNext",
+{
+  "compilerOptions": {
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    // "rootDir": "./src",
+    // "outDir": "./dist",
+    "paths": {
+      "@/server/*": [
+        "./src/*"
+      ],
+      "@/server/packages/*": [
+        "../../packages/src/*"
+      ],
+    },
+  },
+  "include": [
+    "./src",
+    "../../packages/src",
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

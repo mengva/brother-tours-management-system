@@ -7,18 +7,55 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "start:server": "cd apps/server && bun --hot src/server/index.ts",
+    "db:push": "cd apps/server && bunx drizzle-kit push",
+    "db:generate": "cd apps/server && bunx drizzle-kit generate",
+    "db:migrate": "cd apps/server && bunx drizzle-kit migrate",
+    "db:studio": "cd apps/server && bunx drizzle-kit studio",
+    "dev:landing": "cd apps/web-landing && bun run dev",
+    "build:landing": "cd apps/web-landing && bun run build",
+    "dev:admin": "cd apps/web-admin && bun run dev",
+    "build:admin": "cd apps/web-admin && bun run build"
   },
   "devDependencies": {
+    "@types/jsdom": "^28.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^8.0.1",
+    "@types/pg": "^8.20.0",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
+    "drizzle-kit": "1.0.0-rc.4",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "tsx": "^4.23.1",
     "turbo": "^2.9.18",
     "typescript": "^5"
   },
   "packageManager": "pnpm@10.33.4",
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "@hono/trpc-server": "^0.4.2",
+    "@trpc/client": "^11.18.0",
+    "@trpc/server": "^11.18.0",
+    "@upstash/redis": "^1.38.0",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
+    "devalue": "^5.8.2",
+    "dompurify": "^3.4.12",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "1.0.0-rc.4",
+    "jsdom": "^30.0.1",
+    "jsonwebtoken": "^9.0.3",
+    "moment": "^2.30.1",
+    "nodemailer": "^9.0.3",
+    "pg": "^8.22.0",
+    "rate-limiter-flexible": "^11.2.0",
+    "react-hot-toast": "^2.6.0",
+    "resend": "^6.18.1",
+    "superjson": "^2.2.6",
+    "zod": "^4.4.3"
   }
 }
