@@ -18,13 +18,14 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
     trpc.createClient({
       links: [
         loggerLink({
-          enabled: (opts) =>
-            process.env.NODE_ENV === 'development' ||
-            (opts.direction === 'down' && opts.result instanceof Error),
+          // enabled: (opts) =>
+          //   process.env.NODE_ENV === 'development' ||
+          //   (opts.direction === 'down' && opts.result instanceof Error),
+          enabled: () => false
         }),
         httpBatchLink({
           transformer: superjson,
-          url: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9876'}/trpc`,
+          url: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5050'}/trpc`,
           fetch(url, options) {
             return fetch(url, {
               ...options,
