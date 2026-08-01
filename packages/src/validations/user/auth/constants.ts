@@ -13,15 +13,9 @@ export const zodValidationStr = z.string().min(2, "String should be 2 characters
         { message: "String cannot contain links (http://, https://, www.)." }
     )
 
-export const zodValidationUuid = z.string().uuid("Invalid uuid formatter").nonempty("UUID is required");
 export const zodValidationEmail = z.string().email("Invalid email formatter").nonempty("Email is required");
-export const zodValidationPassword = z.string()
-    .min(6, "password must be at least 6 characters")
-    .max(128, "password too long")
-    .regex(/^(?=.*[a-z])/, "must contain lowercase letter")
-    .regex(/^(?=.*[A-Z])/, "must contain uppercase letter")
-    .regex(/^(?=.*\d)/, "must contain number")
-    .regex(/^(?=.*[@$!%*?&])/, "must contain special character")
+
+export const zodValidationClientPassword = z.string()
     .nonempty("Password is required")
     .refine(
         (val) => !forbiddenHtmlRegex.test(val),
@@ -31,6 +25,14 @@ export const zodValidationPassword = z.string()
         (val) => !forbiddenLinkRegex.test(val),
         { message: "Password cannot contain links (http://, https://, www.)." }
     )
+
+export const zodValidationPassword = zodValidationClientPassword
+    .min(6, "password must be at least 6 characters")
+    .max(128, "password too long")
+    .regex(/^(?=.*[a-z])/, "must contain lowercase letter")
+    .regex(/^(?=.*[A-Z])/, "must contain uppercase letter")
+    .regex(/^(?=.*\d)/, "must contain number")
+    .regex(/^(?=.*[@$!%*?&])/, "must contain special character")
 
 export const zodValidationConfirmPassword = z.string()
     .min(6, "password must be at least 6 characters")
@@ -96,19 +98,6 @@ export const zodValidationOTPCode = z.string()
         { message: "OTP code cannot contain links (http://, https://, www.)." }
     )
 
-export const zodValidationOTPCodeSignIn = z.string()
-    .length(8, 'Code must be exactly 8 digits')
-    .regex(/^\d+$/, 'Code must contain only numbers')
-    .nonempty('Code is required')
-    .refine(
-        (val) => !forbiddenHtmlRegex.test(val),
-        { message: "OTP code cannot contain HTML tags or script characters (<, >)." }
-    )
-    .refine(
-        (val) => !forbiddenLinkRegex.test(val),
-        { message: "OTP code cannot contain links (http://, https://, www.)." }
-    )
-
 export const zodValidationPhoneNumber = z.string()
     .min(8, "Phone number must be at least 8 digits")
     .max(14, "Phone number must be at most 14 digits")
@@ -134,27 +123,6 @@ export const zodValidationSearchQuery = z.string()
         { message: "Search query cannot contain links (http://, https://, www.)." }
     );
 
-export const zodValidationStrDate = z.string()
-    .default("")
-    .refine(
-        (val) => !forbiddenHtmlRegex.test(val),
-        { message: "Date string cannot contain HTML tags or script characters (<, >)." }
-    )
-    .refine(
-        (val) => !forbiddenLinkRegex.test(val),
-        { message: "Date string cannot contain links (http://, https://, www.)." }
-    );
-
-export const zodValidationDate = z.string().date("Invalid date formatter")
-    .nonempty("Date is required")
-    .refine(
-        (val) => !forbiddenHtmlRegex.test(val),
-        { message: "Date cannot contain HTML tags or script characters (<, >)." }
-    )
-    .refine(
-        (val) => !forbiddenLinkRegex.test(val),
-        { message: "Date cannot contain links (http://, https://, www.)." }
-    )
 
 export const zodValidationFullName = z.string()
     .nonempty("FullName is required")

@@ -10,19 +10,21 @@ export const imageTypeEnum = pgEnum("image_type", [
     "Document",
 
     // --- Tour & Marketing (New Features) ---
-    "TourBanner",       // ຮູບ Banner ທົວ
-    "TourGallery",      // ຮູບແກເລີຣີຂອງທົວ
-    "CategoryIcon",     // ຮູບ/ໄອຄອນ ປະເພດທົວ
+    "TourBanner",       // image Banner tour
+    "TourGallery",      // image Gallery tour
+    "CategoryIcon",     // image/Icon tour category
 
     // --- Booking, Financial & Sales ---
-    "PaymentSlip",      // ໃບໂອນ/Slip ໂອນເງິນມັດຈຳ
-    "Contract",          // ສັນຍາການຈອງ/ສັນຍາ Supplier
-    "Itinerary",         // ຮູບສະຖານທີ່ທ່ອງທ່ຽວໃນແຜນການທົວ
+    "PaymentSlip",      // image Slip deposit payment
+    "FullPaymentSlip",  // image Slip full payment
+    "FinalBalanceSlip",  // image Slip final balance payment
+    "Contract",          // image Contract booking/supplier
+    "Itinerary",         // image Itinerary travel plan
 
     // --- Supplier & Accommodation ---
-    "Room",              // ຮູບໂຮງແຮມ/ຮ້ອງພັກ
-    "Vehicle",           // ຮູບລົດ/ເຮືອ/ພາຫະນະ
-    "Activity",          // ຮູບກິດຈະກຳ
+    "Room",              // image Room accommodation
+    "Vehicle",           // image Vehicle transportation
+    "Activity",          // image Activity tour
 
     // --- Fallback ---
     "Other"

@@ -15,7 +15,7 @@ export const enquiriesRelations = relations(enquiries, ({ one, many }) => ({
         fields: [enquiries.tourId],
         references: [tours.id],
     }),
-    assignedStaff: one(users, {
+    assignedStaffId: one(users, {
         fields: [enquiries.assignedStaffId],
         references: [users.id],
     }),

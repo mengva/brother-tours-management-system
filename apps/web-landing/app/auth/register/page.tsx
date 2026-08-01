@@ -6,18 +6,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-    Compass,
     Mail,
     Lock,
     User,
-    Phone,
     Eye,
     EyeOff,
     UserPlus,
     AlertCircle,
     CheckCircle2,
+    Phone,
 } from "lucide-react";
 import BrotherTourLogoCom from "@/components/brother-tour-logo";
+import { FaSpinner } from "react-icons/fa6";
 
 // Define Validation Schema using Zod
 const signUpSchema = z
@@ -30,10 +30,10 @@ const signUpSchema = z
             .string()
             .min(1, { message: "Email is required" })
             .email({ message: "Invalid email address" }),
-        phone: z
+        phoneNumber: z
             .string()
-            .min(1, { message: "Phone number is required" })
-            .min(8, { message: "Please enter a valid phone number" }),
+            .min(1, { message: "PhoneNumber number is required" })
+            .min(8, { message: "Please enter a valid phoneNumber number" }),
         password: z
             .string()
             .min(1, { message: "Password is required" })
@@ -70,7 +70,7 @@ export default function SignUpForm() {
         defaultValues: {
             fullName: "",
             email: "",
-            phone: "",
+            phoneNumber: "",
             password: "",
             confirmPassword: "",
             acceptTerms: false,
@@ -107,7 +107,7 @@ export default function SignUpForm() {
                 {/* Header / Brand Logo */}
                 <div className="text-center space-y-2">
                     <Link href="/" className="inline-flex items-center gap-2 group mb-1">
-                        <BrotherTourLogoCom width={120} height={120}/>
+                        <BrotherTourLogoCom width={120} height={120} />
                         <span className="text-2xl font-black tracking-tight text-white">
                             LAO<span className="text-emerald-400">TRAVEL</span>
                         </span>
@@ -151,8 +151,8 @@ export default function SignUpForm() {
                                 placeholder="John Doe"
                                 {...register("fullName")}
                                 className={`w-full pl-10 pr-4 py-3 bg-slate-900/80 border text-xs font-medium rounded-2xl text-white placeholder:text-slate-500 focus:outline-none transition-colors ${errors.fullName
-                                        ? "border-rose-500 focus:border-rose-500"
-                                        : "border-slate-700 focus:border-emerald-500"
+                                    ? "border-rose-500 focus:border-rose-500"
+                                    : "border-slate-700 focus:border-emerald-500"
                                     }`}
                             />
                         </div>
@@ -163,7 +163,7 @@ export default function SignUpForm() {
                         )}
                     </div>
 
-                    {/* Email & Phone Group */}
+                    {/* Email & PhoneNumber Group */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         {/* Email Field */}
@@ -178,8 +178,8 @@ export default function SignUpForm() {
                                     placeholder="name@example.com"
                                     {...register("email")}
                                     className={`w-full pl-10 pr-4 py-3 bg-slate-900/80 border text-xs font-medium rounded-2xl text-white placeholder:text-slate-500 focus:outline-none transition-colors ${errors.email
-                                            ? "border-rose-500 focus:border-rose-500"
-                                            : "border-slate-700 focus:border-emerald-500"
+                                        ? "border-rose-500 focus:border-rose-500"
+                                        : "border-slate-700 focus:border-emerald-500"
                                         }`}
                                 />
                             </div>
@@ -190,26 +190,26 @@ export default function SignUpForm() {
                             )}
                         </div>
 
-                        {/* Phone Field */}
+                        {/* PhoneNumber Field */}
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-slate-300">
-                                Phone Number
+                                PhoneNumber Number
                             </label>
                             <div className="relative flex items-center">
                                 <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
                                 <input
                                     type="tel"
                                     placeholder="+856 20 5555 1234"
-                                    {...register("phone")}
-                                    className={`w-full pl-10 pr-4 py-3 bg-slate-900/80 border text-xs font-medium rounded-2xl text-white placeholder:text-slate-500 focus:outline-none transition-colors ${errors.phone
-                                            ? "border-rose-500 focus:border-rose-500"
-                                            : "border-slate-700 focus:border-emerald-500"
+                                    {...register("phoneNumber")}
+                                    className={`w-full pl-10 pr-4 py-3 bg-slate-900/80 border text-xs font-medium rounded-2xl text-white placeholder:text-slate-500 focus:outline-none transition-colors ${errors.phoneNumber
+                                        ? "border-rose-500 focus:border-rose-500"
+                                        : "border-slate-700 focus:border-emerald-500"
                                         }`}
                                 />
                             </div>
-                            {errors.phone && (
+                            {errors.phoneNumber && (
                                 <p className="text-[11px] font-medium text-rose-400 pl-1">
-                                    {errors.phone.message}
+                                    {errors.phoneNumber.message}
                                 </p>
                             )}
                         </div>
@@ -231,8 +231,8 @@ export default function SignUpForm() {
                                     placeholder="••••••••"
                                     {...register("password")}
                                     className={`w-full pl-10 pr-10 py-3 bg-slate-900/80 border text-xs font-medium rounded-2xl text-white placeholder:text-slate-500 focus:outline-none transition-colors ${errors.password
-                                            ? "border-rose-500 focus:border-rose-500"
-                                            : "border-slate-700 focus:border-emerald-500"
+                                        ? "border-rose-500 focus:border-rose-500"
+                                        : "border-slate-700 focus:border-emerald-500"
                                         }`}
                                 />
                                 <button
@@ -266,8 +266,8 @@ export default function SignUpForm() {
                                     placeholder="••••••••"
                                     {...register("confirmPassword")}
                                     className={`w-full pl-10 pr-10 py-3 bg-slate-900/80 border text-xs font-medium rounded-2xl text-white placeholder:text-slate-500 focus:outline-none transition-colors ${errors.confirmPassword
-                                            ? "border-rose-500 focus:border-rose-500"
-                                            : "border-slate-700 focus:border-emerald-500"
+                                        ? "border-rose-500 focus:border-rose-500"
+                                        : "border-slate-700 focus:border-emerald-500"
                                         }`}
                                 />
                                 <button
@@ -324,7 +324,7 @@ export default function SignUpForm() {
                         className="w-full cursor-pointer py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/50 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:pointer-events-none mt-4"
                     >
                         {isSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <FaSpinner className="w-4 h-4 text-white animate-spin" />
                         ) : (
                             <>
                                 <UserPlus className="w-4 h-4" />

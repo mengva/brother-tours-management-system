@@ -9,22 +9,21 @@ import {
     index,
 } from 'drizzle-orm/pg-core';
 import { users } from '../user';
-import { paymentStatusEnum } from './enum';
 import { enquiries } from '../enquirie';
 import { customers } from '../customer';
 import { tours } from '../tour';
+import { paymentStatusEnum } from '../payment';
 
 export const bookings = pgTable('bookings', {
     id: uuid('id').defaultRandom().primaryKey(),
     bookingRef: varchar('booking_ref', { length: 20 }).notNull().unique(),
     enquiryId: uuid('enquiry_id').references(() => enquiries.id),
-    tourId: uuid('tour_id').references(() => tours.id), //  ເພີ່ມ tourId
+    tourId: uuid('tour_id').references(() => tours.id), //  add the Tour Reference
     customerId: uuid('customer_id')
-        .references(() => customers.id) // ແກ້ Foreign Key ໄປຫາ customers
+        .references(() => customers.id) // edit a Foreign Key into customers
         .notNull(),
     assignedStaffId: uuid('assigned_staff_id')
-        .references(() => users.id)
-        .notNull(),
+            .references(() => users.id),
     tourTitle: text('tour_title').notNull(),
     travellerCount: integer('traveller_count').notNull(),
     travelStartDate: timestamp('travel_start_date').notNull(),

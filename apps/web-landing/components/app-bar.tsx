@@ -59,7 +59,7 @@ function AppBarPage() {
                         {
                             NAV_ITEMS.map((item) => {
                                 // Check if current route matches link href
-                                const isActive = Boolean(pathname.startsWith(item.href));
+                                const isActive = Boolean(pathname === item.href);
 
                                 return (
                                     <Link
@@ -116,7 +116,7 @@ function AppBarPage() {
                 {isMobileMenuOpen && (
                     <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-2 animate-in slide-in-from-top duration-200">
                         {NAV_ITEMS.map((item) => {
-                            const isActive = pathname.includes(item.href)
+                            const isActive = pathname === item.href;
 
                             return (
                                 <Link

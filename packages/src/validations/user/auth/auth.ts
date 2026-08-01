@@ -1,13 +1,18 @@
 import z from "zod";
-import { zodValidationBirthday, zodValidationConfirmPassword, zodValidationEmail, zodValidationFullName, zodValidationGender, zodValidationOTPCode, zodValidationOTPCodeSignIn, zodValidationPassword, zodValidationPhoneNumber } from "./constants";
+import { zodValidationBirthday, zodValidationClientPassword, zodValidationConfirmPassword, zodValidationEmail, zodValidationFullName, zodValidationGender, zodValidationOTPCode, zodValidationPassword, zodValidationPhoneNumber } from "./constants";
 
 export const zodValidationSignIn = z.object({
     email: zodValidationEmail,
     password: zodValidationPassword,
 });
 
+export const zodValidationClientSignIn = z.object({
+    email: zodValidationEmail,
+    password: zodValidationClientPassword,
+});
+
 export const zodValidationSignInOTP = z.object({
-    code: zodValidationOTPCodeSignIn
+    code: zodValidationOTPCode,
 });
 
 export const zodValidationSignUp = z.object({
@@ -51,6 +56,7 @@ export const zodValidationServerResetPassword = z.object({
     password: zodValidationPassword,
 })
 export type ZodValidationSignIn = z.infer<typeof zodValidationSignIn>;
+export type ZodValidationClientSignIn = z.infer<typeof zodValidationClientSignIn>;
 export type ZodValidationSignInOTP = z.infer<typeof zodValidationSignInOTP>;
 export type ZodValidationSignUp = z.infer<typeof zodValidationSignUp>;
 export type ZodValidationSendOTPToEmail = z.infer<typeof zodValidationSendOTPToEmail>;

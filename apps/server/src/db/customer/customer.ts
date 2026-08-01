@@ -14,11 +14,11 @@ import {
 import { users } from '../user';
 
 
-// --- 2. CUSTOMERS TABLE (ສຳລັບ ນັກທ່ອງທ່ຽວ/ລູກຄ້າ ທີ່ມາຊື້ທົວ) ---
+// --- 2. CUSTOMERS TABLE (for travel/customer tour) ---
 export const customers = pgTable('customers', {
     id: uuid("id").defaultRandom().primaryKey(),
 
-    // (Optional) ເຊື່ອມຫາ User ຖ້າ Customer ຄົນນີ້ມີ Account Login
+    // (Optional) connection to User if the Customer has a Login Account
     userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
 
     fullName: varchar("full_name", { length: 150 }).notNull(),
@@ -28,7 +28,7 @@ export const customers = pgTable('customers', {
     gender: varchar("gender", { length: 20 }),
     birthDay: date("birth_day"),
 
-    // Address (ປ່ຽນເປັນ Optional ເພາະບາງເທື່ອລູກຄ້າໃໝ່ຍັງບໍ່ໄດ້ໃຫ້ທີ່ຢູ່)
+    // Address (changed to Optional because some customers may not have an address)
     village: varchar("village", { length: 150 }),
     district: varchar("district", { length: 150 }),
     province: varchar("province", { length: 150 }),

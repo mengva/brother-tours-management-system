@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { redis } from "@/server/lib/redis";
 import { MailServices } from "@/server/lib/mail";
 import { CookieServices, HandlerSuccess, Helper, tRPCErrorServices, type MailOptionsDto } from "@/server/utils";
-import type { ServerResponseDto } from "@/server/packages/types";
+import type { ServerResponseDto, UserRoleDto } from "@/server/packages/types";
 import type { MyContext } from "@/server/server/trpc/context";
 import type { ZodValidationSendOTPToEmail, ZodValidationServerResetPassword, ZodValidationSignIn, ZodValidationSignInOTP } from "@/server/packages/validations";
 import { tokenName } from "@/server/packages/utils";
@@ -65,7 +65,7 @@ export class tRPCAuthServices {
             // 6. Prepare JWT Payload
             const userPayload = {
                 userId: userInfo.id,
-                role: userInfo.role,
+                role: userInfo.role as UserRoleDto,
                 userAgent: userAgent,
             };
 
@@ -124,7 +124,8 @@ export class tRPCAuthServices {
                         phoneNumber: info.phoneNumber,
                         gender: info.gender,
                         userAgent: userAgent,
-                        role: "Customer"
+                        role: "Customer" as UserRoleDto,
+                        isActive: true,
                     })
                     .returning({
                         userId: users.id,

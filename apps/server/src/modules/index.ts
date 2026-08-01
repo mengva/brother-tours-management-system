@@ -58,19 +58,21 @@ export const imageTypeEnum = pgEnum("image_type", [
     "Document",
 
     // --- Tour & Marketing (New Features) ---
-    "TourBanner",       // ຮູບ Banner ທົວ
-    "TourGallery",      // ຮູບແກເລີຣີຂອງທົວ
-    "CategoryIcon",     // ຮູບ/ໄອຄອນ ປະເພດທົວ
+    "TourBanner",       // image Banner tour
+    "TourGallery",      // image Gallery tour
+    "CategoryIcon",     // image/Icon tour category
 
     // --- Booking, Financial & Sales ---
-    "PaymentSlip",      // ໃບໂອນ/Slip ໂອນເງິນມັດຈຳ
-    "Contract",          // ສັນຍາການຈອງ/ສັນຍາ Supplier
-    "Itinerary",         // ຮູບສະຖານທີ່ທ່ອງທ່ຽວໃນແຜນການທົວ
+    "PaymentSlip",      // image Slip deposit payment
+    "FullPaymentSlip",  // image Slip full payment
+    "FinalBalanceSlip",  // image Slip final balance payment
+    "Contract",          // image Contract booking/supplier
+    "Itinerary",         // image Itinerary travel plan
 
     // --- Supplier & Accommodation ---
-    "Room",              // ຮູບໂຮງແຮມ/ຮ້ອງພັກ
-    "Vehicle",           // ຮູບລົດ/ເຮືອ/ພາຫະນະ
-    "Activity",          // ຮູບກິດຈະກຳ
+    "Room",              // image Room accommodation
+    "Vehicle",           // image Vehicle transportation
+    "Activity",          // image Activity tour
 
     // --- Fallback ---
     "Other"
@@ -78,9 +80,33 @@ export const imageTypeEnum = pgEnum("image_type", [
 
 export const paymentStatusEnum = pgEnum('payment_status', [
     'Unpaid',
-    'DepositPaid',
-    'FullyPaid',
+    'Partially_Paid',
+    'Paid',
     'Refunded',
+]);
+
+export const paymentTypeEnum = pgEnum('payment_type', [
+    'Deposit',        // Deposit payment
+    'Final_Balance',  // Final balance payment
+    'Full_Payment',   // Full payment
+    'Refund',         // Refund
+]);
+
+export const paymentTxStatusEnum = pgEnum('payment_tx_status', [
+    'Pending',   // Pending Slip / Processing
+    'Success',   // Success
+    'Failed',    // Failed / Slip Invalid
+    'Rejected',  // Admin Rejected
+]);
+
+// ---------------- Enums ----------------
+export const invoiceStatusEnum = pgEnum('invoice_status', [
+    'Draft',      // Draft Invoice
+    'Sent',       // Sent to Customer / Awaiting Payment
+    'Paid',       // Paid
+    'Partially_Paid', // Partially Paid
+    'Overdue',    // Overdue
+    'Cancelled',  // Cancelled
 ]);
 
 export const supplierTypeEnum = pgEnum('supplier_type', [
@@ -175,14 +201,14 @@ export const userCredentials = pgTable("user_credentials", {
 });
 
 // ==========================================
-// 3. NEW TABLES: TOUR CATEGORIES & TOURS (ເພີ່ມໃໝ່)
+// 3. NEW TABLES: TOUR CATEGORIES & TOURS (new added)
 // ==========================================
 
 // --- Table (Tour Categories) ---
 export const tourCategories = pgTable('tour_categories', {
     id: uuid('id').defaultRandom().primaryKey(),
     name: varchar('name', { length: 100 }).notNull(), // e.g. "Cultural", "Adventure", "Relaxation"
-    slug: varchar('slug', { length: 120 }).notNull().unique(), // e.g. "cultural-tours" ສຳລັບ URL
+    slug: varchar('slug', { length: 120 }).notNull().unique(), // e.g. "cultural-tours" for URL
     description: text('description'),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -196,19 +222,26 @@ export const tours = pgTable('tours', {
     id: uuid('id').defaultRandom().primaryKey(),
     categoryId: uuid('category_id').references(() => tourCategories.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
-    slug: varchar('slug', { length: 255 }).notNull().unique(), // URL-friendly (e.g. "luang-prabang-3d2n")
-    summary: text('summary'), // ສັງເຂບຫຍໍ້ສຳລັບ Card ໃນ Landing Page
-    description: text('description'), // ລາຍລະອຽດເຕັມ
-    destination: varchar('destination', { length: 150 }).notNull(), // e.g. "Luang Prabang", "Vang Vieng"
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    summary: text('summary'),
+    description: text('description'),
+    destination: varchar('destination', { length: 150 }).notNull(),
     durationDays: integer('duration_days').notNull(),
     durationNights: integer('duration_nights').notNull(),
 
-    // Pricing
-    basePrice: numeric('base_price', { precision: 12, scale: 2 }).notNull(), // ລາຄາເລີ່ມຕົ້ນ
-    currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+    // ==================== Pricing Fields (update more 🚀) ====================
+    basePrice: numeric('base_price', { precision: 12, scale: 2 }).notNull(), // basePrice / (Adult Price)
+    childPrice: numeric('child_price', { precision: 12, scale: 2 }), // childPrice (Optional)
+    infantPrice: numeric('infant_price', { precision: 12, scale: 2 }), // infantPrice (Optional)
+
+    discountPrice: numeric('discount_price', { precision: 12, scale: 2 }), // discountPrice / Promotion Price
+    singleSupplementPrice: numeric('single_supplement_price', { precision: 12, scale: 2 }), // singleSupplementPrice (Optional)
+    costPrice: numeric('cost_price', { precision: 12, scale: 2 }), // costPrice (For Admin Reference)
+
+    currency: varchar('currency', { length: 3 }).default('USD').notNull(), // USD, LAK, THB
 
     // Status flags
-    isFeatured: boolean('is_featured').default(false).notNull(), // ໂຊໃນ Hero/Recommended Section ຂອງ Landing Page
+    isFeatured: boolean('is_featured').default(false).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -242,8 +275,8 @@ export const images = pgTable("images", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     supplierId: uuid("supplier_id").references(() => suppliers.id, { onDelete: "cascade" }),
-    tourId: uuid("tour_id").references(() => tours.id, { onDelete: "cascade" }), //  ເພີ່ມ tourId
-    categoryId: uuid("category_id").references(() => tourCategories.id, { onDelete: "cascade" }), //  ເພີ່ມ categoryId
+    tourId: uuid("tour_id").references(() => tours.id, { onDelete: "cascade" }), //  add tourId
+    categoryId: uuid("category_id").references(() => tourCategories.id, { onDelete: "cascade" }), //  add categoryId
     itineraryId: uuid("itinerary_id").references(() => tourItineraries.id, { onDelete: "cascade" }),
     bookingId: uuid("booking_id").references(() => bookings.id, { onDelete: "cascade" }),
     url: text("url").notNull(),
@@ -258,6 +291,9 @@ export const images = pgTable("images", {
     index("images_user_id_idx").on(table.userId),
     index("images_tour_id_idx").on(table.tourId),
     index("images_booking_id_idx").on(table.bookingId),
+    index("images_supplier_id_idx").on(table.supplierId),
+    index("images_category_id_idx").on(table.categoryId),
+    index("images_itinerary_id_idx").on(table.itineraryId),
     index("images_type_idx").on(table.type),
 ]);
 
@@ -268,9 +304,9 @@ export const images = pgTable("images", {
 export const enquiries = pgTable('enquiries', {
     id: uuid('id').defaultRandom().primaryKey(),
     customerId: uuid('customer_id')
-        .references(() => customers.id, { onDelete: 'cascade' }) // ແກ້ Foreign Key ໄປຫາ customers
+        .references(() => customers.id, { onDelete: 'cascade' }) // update Foreign Key to customers
         .notNull(),
-    tourId: uuid('tour_id').references(() => tours.id, { onDelete: 'set null' }), //  ເພີ່ມ Tour Reference (ຖ້າລູກຄ້າເລືອກຈາກ Landing Page)
+    tourId: uuid('tour_id').references(() => tours.id, { onDelete: 'set null' }), //  add Tour Reference (if customer selects from Landing Page)
     assignedStaffId: uuid('assigned_staff_id').references(() => users.id),
     status: enquiryStatusEnum('status').default("NewEnquiry").notNull(),
     travellerCount: integer('traveller_count').default(1).notNull(),
@@ -282,6 +318,7 @@ export const enquiries = pgTable('enquiries', {
 }, table => [
     index("enquiries_customer_id_idx").on(table.customerId),
     index("enquiries_tour_id_idx").on(table.tourId),
+    index("enquiries_assigned_staff_id_idx").on(table.assignedStaffId),
     index("enquiries_status_idx").on(table.status),
 ]);
 
@@ -307,13 +344,12 @@ export const bookings = pgTable('bookings', {
     id: uuid('id').defaultRandom().primaryKey(),
     bookingRef: varchar('booking_ref', { length: 20 }).notNull().unique(),
     enquiryId: uuid('enquiry_id').references(() => enquiries.id),
-    tourId: uuid('tour_id').references(() => tours.id), //  ເພີ່ມ tourId
+    tourId: uuid('tour_id').references(() => tours.id), //  add tourId
     customerId: uuid('customer_id')
-        .references(() => customers.id) // ແກ້ Foreign Key ໄປຫາ customers
+        .references(() => customers.id) // update Foreign Key to customers
         .notNull(),
     assignedStaffId: uuid('assigned_staff_id')
-        .references(() => users.id)
-        .notNull(),
+        .references(() => users.id),
     tourTitle: text('tour_title').notNull(),
     travellerCount: integer('traveller_count').notNull(),
     travelStartDate: timestamp('travel_start_date').notNull(),
@@ -336,6 +372,80 @@ export const bookings = pgTable('bookings', {
     index("booking_payment_status_idx").on(table.paymentStatus),
 ]);
 
+// ---------------- 6. Payments Table (NEW 🚀) ----------------
+export const payments = pgTable('payments', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    bookingId: uuid('booking_id')
+        .references(() => bookings.id, { onDelete: 'cascade' })
+        .notNull(),
+    tourId: uuid('tour_id').references(() => tours.id), //  add tourId
+    invoiceId: uuid('invoice_id').references(() => invoices.id, { onDelete: 'set null' }),
+    customerId: uuid('customer_id')
+        .references(() => customers.id) // update Foreign Key to customers
+        .notNull(),
+    staffId: uuid('staff_id')
+        .references(() => users.id),
+    paymentNo: text('payment_no').notNull().unique(), // e.g. PAY-20260801-001
+    amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    paymentType: paymentTypeEnum('payment_type').default("Full_Payment").notNull(),
+    paymentMethod: text('payment_method').notNull(), // e.g. "ONEPAY", "BCEL_QR", "CASH", "BANK_TRANSFER"
+    status: paymentTxStatusEnum('status').default("Pending").notNull(),
+    notes: text('notes'), 
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
+}, table => [
+    index('payments_booking_id_idx').on(table.bookingId),
+    index('payments_tour_id_idx').on(table.tourId),
+    index('payments_invoice_id_idx').on(table.invoiceId),
+    index('payments_customer_id_idx').on(table.customerId),
+    index('payments_staff_id_idx').on(table.staffId),
+    index('payments_payment_no_idx').on(table.paymentNo),
+    index('payments_status_idx').on(table.status),
+    index('payments_payment_type_idx').on(table.paymentType),
+]);
+
+// ---------------- 1. Invoices Table (ເພີ່ມໃໝ່ 🚀) ----------------
+export const invoices = pgTable('invoices', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    invoiceNo: text('invoice_no').notNull().unique(), // e.g. INV-202608-0001
+
+    // 🔗 Foreign Keys
+    bookingId: uuid('booking_id')
+        .references(() => bookings.id, { onDelete: 'cascade' })
+        .notNull(),
+    customerId: uuid('customer_id')
+        .references(() => customers.id, { onDelete: 'restrict' })
+        .notNull(),
+    issuedById: uuid('issued_by_id')
+        .references(() => users.id, { onDelete: 'set null' }),
+    tourId: uuid('tour_id').references(() => tours.id), //  add tourId
+
+    // 💰 Amounts
+    subtotal: numeric('subtotal', { precision: 12, scale: 2 }).notNull(),
+    taxAmount: numeric('tax_amount', { precision: 12, scale: 2 }).default('0').notNull(),
+    discountAmount: numeric('discount_amount', { precision: 12, scale: 2 }).default('0').notNull(),
+    totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(), // subtotal + tax - discount
+    paidAmount: numeric('paid_amount', { precision: 12, scale: 2 }).default('0').notNull(), 
+    dueAmount: numeric('due_amount', { precision: 12, scale: 2 }).notNull(), 
+
+    status: invoiceStatusEnum('status').default('Draft').notNull(),
+
+    // 📅 Dates
+    issueDate: timestamp('issue_date', { withTimezone: true }).defaultNow().notNull(),
+    dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
+
+    notes: text('notes'), 
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
+}, table => [
+    index('invoices_booking_id_idx').on(table.bookingId),
+    index('invoices_customer_id_idx').on(table.customerId),
+    index('invoices_issued_by_id_idx').on(table.issuedById),
+    index('invoices_tour_id_idx').on(table.tourId),
+    index('invoices_status_idx').on(table.status),
+]);
+
 // ==========================================
 // 6. SUPPLIERS, RATES & AUDIT LOGS
 // ==========================================
@@ -343,7 +453,7 @@ export const bookings = pgTable('bookings', {
 export const serviceRates = pgTable('service_rates', {
     id: uuid('id').defaultRandom().primaryKey(),
     supplierId: uuid('supplier_id')
-        .references(() => suppliers.id, { onDelete: 'cascade' }) // ແກ້ Foreign Key ໄປຫາ suppliers
+        .references(() => suppliers.id, { onDelete: 'cascade' }) // update Foreign Key to suppliers
         .notNull(),
     serviceName: text('service_name').notNull(),
     unitType: unitTypeEnum('unit_type').notNull(),
@@ -363,7 +473,7 @@ export const serviceRates = pgTable('service_rates', {
 export const supplierAvailability = pgTable('supplier_availability', {
     id: uuid('id').defaultRandom().primaryKey(),
     supplierId: uuid('supplier_id')
-        .references(() => suppliers.id, { onDelete: 'cascade' }) // ແກ້ Foreign Key ໄປຫາ suppliers
+        .references(() => suppliers.id, { onDelete: 'cascade' }) // update Foreign Key to suppliers
         .notNull(),
     date: timestamp('date').notNull(),
     status: availabilityStatusEnum('status').default("Available").notNull(),
@@ -397,7 +507,7 @@ export const priceHistories = pgTable('price_histories', {
 // 7. DRIZZLE RELATIONS DEFINITION
 // ==========================================
 
-export const tourCategoriesRelations = relations(tourCategories, ({ many, one }) => ({
+export const tourCategoriesRelations = relations(tourCategories, ({ many }) => ({
     tours: many(tours),
     images: many(images),
 }));
@@ -411,6 +521,8 @@ export const toursRelations = relations(tours, ({ one, many }) => ({
     images: many(images),
     enquiries: many(enquiries),
     bookings: many(bookings),
+    payments: many(payments),
+    invoices: many(invoices, { relationName: 'tour_invoices' }),
 }));
 
 export const tourItinerariesRelations = relations(tourItineraries, ({ one }) => ({
@@ -434,6 +546,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     images: many(images),
     assignedEnquiries: many(enquiries),
     assignedBookings: many(bookings),
+    issuedInvoices: many(invoices, { relationName: 'staff_issued_invoices' }),
+    payments: many(payments),
     priceChanges: many(priceHistories),
 }));
 
@@ -451,6 +565,8 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
     }),
     enquiries: many(enquiries),
     bookings: many(bookings),
+    payments: many(payments),
+    invoices: many(invoices, { relationName: 'customer_invoices' }),
 }));
 
 export const suppliersRelations = relations(suppliers, ({ one, many }) => ({
@@ -539,6 +655,37 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
         references: [enquiries.id],
     }),
     images: many(images),
+    payments: many(payments),
+    invoices: many(invoices, { relationName: 'booking_invoices' })
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+    booking: one(bookings, { fields: [payments.bookingId], references: [bookings.id] }),
+    invoice: one(invoices, { fields: [payments.invoiceId], references: [invoices.id] }),
+    customer: one(customers, { fields: [payments.customerId], references: [customers.id] }),
+    staff: one(users, { fields: [payments.staffId], references: [users.id] }),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
+    booking: one(bookings, {
+        fields: [invoices.bookingId],
+        references: [bookings.id],
+    }),
+    tour: one(tours, {
+        fields: [invoices.tourId],
+        references: [tours.id],
+    }),
+    customer: one(customers, {
+        fields: [invoices.customerId],
+        references: [customers.id],
+        relationName: 'customer_invoices',
+    }),
+    issuedBy: one(users, {
+        fields: [invoices.issuedById],
+        references: [users.id],
+        relationName: 'staff_issued_invoices',
+    }),
+    payments: many(payments), 
 }));
 
 export const serviceRatesRelations = relations(serviceRates, ({ one, many }) => ({
@@ -581,14 +728,14 @@ export const priceHistoriesRelations = relations(priceHistories, ({ one }) => ({
 //     bookings: ['create', 'read', 'update', 'delete'],
 //     suppliers: ['create', 'read', 'update', 'delete'],
 //     users: ['create', 'read', 'update', 'delete'],
-//     audit_logs: ['read', 'rollback'], // Admin ເທົ່ານັ້ນທີ່ Restore/Rollback ລາຄາໄດ້
+//     audit_logs: ['read', 'rollback'], // Admin only to Restore/Rollback price
 //   },
 //   SALES: {
 //     enquiries: ['create', 'read', 'update'],
 //     bookings: ['create', 'read', 'update'],
 //     suppliers: ['create', 'read', 'update'],
-//     users: [], // Sales ຈັດການ Users ບໍ່ໄດ້
-//     audit_logs: ['read'], // ເບິ່ງໄດ້ ແຕ່ Rollback ບໍ່ໄດ້
+//     users: [], // Sales not management Users
+//     audit_logs: ['read'], // only view Rollback not allowed to Rollback
 //   },
 //   VIEWER: {
 //     enquiries: ['read'],

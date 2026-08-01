@@ -1,4 +1,6 @@
 export * from "./booking"
+export * from "./payment"
+export * from "./invoices"
 export * from "./credential"
 export * from "./customer"
 export * from "./enquirie"

@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import db from "../config/db";
 import { Helper, tRPCErrorServices } from "../utils";
 import { tokenName } from "@/server/packages/utils";
+import type { UserRoleDto } from "@/server/packages/types";
 
 export class tRPCUserAuthMiddleware {
 
@@ -39,7 +40,7 @@ export class tRPCUserAuthMiddleware {
 
         // 1. Get token from cookies
         const token = ctx.getCookie(tokenName);
-        const currentUA = ctx.userAgent; // Get current User-Agent from Request Headers
+        const userAgent = ctx.userAgent; // Get current User-Agent from Request Headers
 
         if (!token) {
             throw new TRPCError({
@@ -54,7 +55,7 @@ export class tRPCUserAuthMiddleware {
 
             // 3. Security Check: Compare Token's User-Agent with Current Request's User-Agent
             // This prevents Session Hijacking from different browsers/devices
-            if (payload.userAgent !== currentUA) {
+            if (payload.userAgent !== userAgent) {
                 throw new TRPCError({
                     code: "UNAUTHORIZED",
                     message: "Invalid session: Device mismatch detected. Please login again.",
@@ -78,7 +79,7 @@ export class tRPCUserAuthMiddleware {
 
             ctx.userInfo = {
                 userId: payload.userId,
-                role: payload.role,
+                role: payload.role as UserRoleDto,
             }; // Attach user info to context for downstream procedures
 
             ctx.userAgent = payload.userAgent; // Attach user agent to context for potential future use (e.g., logging, analytics)

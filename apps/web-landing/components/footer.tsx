@@ -6,6 +6,7 @@ import {
 import { NAV_ITEMS } from "@/utils/navigation";
 import { FaSquareFacebook } from "react-icons/fa6";
 import { FaSquareInstagram } from "react-icons/fa6";
+import BrotherTourLogoCom from "./brother-tour-logo";
 
 export default function FooterPage() {
     return (
@@ -18,9 +19,7 @@ export default function FooterPage() {
                         {/* Col 1: Brand Info */}
                         <div className="lg:col-span-2 space-y-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
-                                    <Compass className="w-5 h-5" />
-                                </div>
+                               <BrotherTourLogoCom width={100} height={100} />
                                 <span className="text-xl font-black text-white tracking-tight">
                                     LAO<span className="text-emerald-500">TRAVEL</span>
                                 </span>

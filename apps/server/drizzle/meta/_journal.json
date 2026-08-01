@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1785412358613,
-      "tag": "0000_fat_luckman",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1785420017672,
-      "tag": "0001_silky_eddie_brock",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1785558180254,
-      "tag": "0002_aspiring_payback",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1785558605024,
-      "tag": "0003_nosy_ultimatum",
+      "when": 1785592828701,
+      "tag": "0000_marvelous_doctor_octopus",
       "breakpoints": true
     }
   ]

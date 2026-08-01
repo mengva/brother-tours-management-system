@@ -3,6 +3,7 @@ import db from "../config/db";
 import { CookieServices, HandlerSuccess, Helper } from "../utils";
 import { Context as HonoContext } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
+import type { UserRoleDto } from "@/server/packages/types";
 
 interface PayloadDto {
     userId: string;
@@ -50,7 +51,7 @@ export class RefreshTokenMiddleware {
 
             const newToken = await Helper.generateToken({
                 userId: user.id,
-                role: user.role,
+                role: user.role as UserRoleDto,
                 userAgent: currentUA,
             });
 
