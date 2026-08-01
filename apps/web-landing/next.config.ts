@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@workspace/ui", "@/server/packages"],
+  transpilePackages: ["@workspace/ui"],
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,6 +14,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "uploadthing.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cloudinary.com",
       }
     ],
     domains: ['localhost'],
