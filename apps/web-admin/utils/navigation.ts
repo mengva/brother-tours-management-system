@@ -30,6 +30,7 @@ import {
     LucideUsers,
     LucideUserCheck,
     LucideSettings,
+    LucideFolderTree,
 } from "lucide-react";
 
 export const adminNavigation = [
@@ -81,6 +82,12 @@ export const adminNavigation = [
                 name: "Tour Packages",
                 href: "/admin/tours-management/tours",
                 icon: LucideCompass,
+                isActive: false,
+            },
+            {
+                name: "Categories", //  ເພີ່ມ Tour Categories
+                href: "/admin/tours-management/categories",
+                icon: LucideFolderTree,
                 isActive: false,
             },
             {

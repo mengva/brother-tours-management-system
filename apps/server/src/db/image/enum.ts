@@ -9,12 +9,17 @@ export const imageTypeEnum = pgEnum("image_type", [
     "Census",
     "Document",
 
-    // --- Booking, Financial & Sales (Project 1) ---
+    // --- Tour & Marketing (New Features) ---
+    "TourBanner",       // ຮູບ Banner ທົວ
+    "TourGallery",      // ຮູບແກເລີຣີຂອງທົວ
+    "CategoryIcon",     // ຮູບ/ໄອຄອນ ປະເພດທົວ
+
+    // --- Booking, Financial & Sales ---
     "PaymentSlip",      // ໃບໂອນ/Slip ໂອນເງິນມັດຈຳ
     "Contract",          // ສັນຍາການຈອງ/ສັນຍາ Supplier
     "Itinerary",         // ຮູບສະຖານທີ່ທ່ອງທ່ຽວໃນແຜນການທົວ
 
-    // --- Supplier & Accommodation (Project 2) ---
+    // --- Supplier & Accommodation ---
     "Room",              // ຮູບໂຮງແຮມ/ຮ້ອງພັກ
     "Vehicle",           // ຮູບລົດ/ເຮືອ/ພາຫະນະ
     "Activity",          // ຮູບກິດຈະກຳ

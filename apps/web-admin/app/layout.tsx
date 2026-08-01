@@ -1,5 +1,3 @@
-import { Geist, Geist_Mono, Noto_Sans, Roboto } from "next/font/google"
-
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TRPCProvider } from "./trpc";

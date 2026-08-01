@@ -1,18 +1,14 @@
 import {
     pgTable,
     text,
-    varchar,
     timestamp,
     integer,
     numeric,
-    boolean,
-    pgEnum,
     uuid,
     index,
-    date,
 } from 'drizzle-orm/pg-core';
 import { users } from '../user';
-import { unitTypeEnum } from './enum';
+import { currencyEnum, unitTypeEnum } from './enum';
 
 export const serviceRates = pgTable('service_rates', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -22,7 +18,7 @@ export const serviceRates = pgTable('service_rates', {
     serviceName: text('service_name').notNull(),
     unitType: unitTypeEnum('unit_type').notNull(),
     cost: numeric('cost', { precision: 12, scale: 2 }).notNull(),
-    currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+    currency: currencyEnum('currency').notNull(),
     validFrom: timestamp('valid_from').notNull(),
     validUntil: timestamp('valid_until').notNull(),
     minGroupSize: integer('min_group_size').default(1),

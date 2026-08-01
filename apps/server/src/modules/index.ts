@@ -40,7 +40,12 @@ export const userPermissionEnum = pgEnum("user_permission", [
     "Update",
     "Delete",
     "Rollback",
-    "ManageUsers"
+]);
+
+export const currencyEnum = pgEnum('currency', [
+    "USD",
+    "LAK",
+    "THB"
 ]);
 
 export const imageTypeEnum = pgEnum("image_type", [
@@ -52,12 +57,17 @@ export const imageTypeEnum = pgEnum("image_type", [
     "Census",
     "Document",
 
-    // --- Booking, Financial & Sales (Project 1) ---
+    // --- Tour & Marketing (New Features) ---
+    "TourBanner",       // ຮູບ Banner ທົວ
+    "TourGallery",      // ຮູບແກເລີຣີຂອງທົວ
+    "CategoryIcon",     // ຮູບ/ໄອຄອນ ປະເພດທົວ
+
+    // --- Booking, Financial & Sales ---
     "PaymentSlip",      // ໃບໂອນ/Slip ໂອນເງິນມັດຈຳ
     "Contract",          // ສັນຍາການຈອງ/ສັນຍາ Supplier
     "Itinerary",         // ຮູບສະຖານທີ່ທ່ອງທ່ຽວໃນແຜນການທົວ
 
-    // --- Supplier & Accommodation (Project 2) ---
+    // --- Supplier & Accommodation ---
     "Room",              // ຮູບໂຮງແຮມ/ຮ້ອງພັກ
     "Vehicle",           // ຮູບລົດ/ເຮືອ/ພາຫະນະ
     "Activity",          // ຮູບກິດຈະກຳ
@@ -100,7 +110,6 @@ export const availabilityStatusEnum = pgEnum('availability_status', [
 // 2. USERS & AUTHENTICATION
 // ==========================================
 
-// --- 1. USERS TABLE (ສຳລັບ Admin, Sales, Staff ທີ່ Login ເຂົ້າລະບົບ) ---
 export const users = pgTable("users", {
     id: uuid("id").defaultRandom().primaryKey(),
     fullName: varchar("full_name", { length: 150 }).notNull(),
@@ -109,7 +118,7 @@ export const users = pgTable("users", {
     gender: varchar("gender", { length: 20 }),
 
     isActive: boolean("is_active").default(true).notNull(),
-    role: userRoleEnum("role").notNull(), // ADMIN, SALES, VIEWER
+    role: userRoleEnum("role").notNull(),
     permissions: userPermissionEnum("permissions").array().default([]),
 
     userAgent: varchar("user_agent", { length: 255 }),
@@ -120,11 +129,8 @@ export const users = pgTable("users", {
     index("users_role_idx").on(table.role),
 ]);
 
-// --- 2. CUSTOMERS TABLE (ສຳລັບ ນັກທ່ອງທ່ຽວ/ລູກຄ້າ ທີ່ມາຊື້ທົວ) ---
 export const customers = pgTable('customers', {
     id: uuid("id").defaultRandom().primaryKey(),
-
-    // (Optional) ເຊື່ອມຫາ User ຖ້າ Customer ຄົນນີ້ມີ Account Login
     userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
 
     fullName: varchar("full_name", { length: 150 }).notNull(),
@@ -134,12 +140,10 @@ export const customers = pgTable('customers', {
     gender: varchar("gender", { length: 20 }),
     birthDay: date("birth_day"),
 
-    // Address (ປ່ຽນເປັນ Optional ເພາະບາງເທື່ອລູກຄ້າໃໝ່ຍັງບໍ່ໄດ້ໃຫ້ທີ່ຢູ່)
     village: varchar("village", { length: 150 }),
     district: varchar("district", { length: 150 }),
     province: varchar("province", { length: 150 }),
 
-    // Passport & Identity Info
     passportNumber: varchar("passport_number", { length: 100 }),
     passportExpiryDate: date("passport_expiry_date"),
     identityCardNumber: varchar("identity_card_number", { length: 100 }),
@@ -153,9 +157,8 @@ export const customers = pgTable('customers', {
 
 export const suppliers = pgTable('suppliers', {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    createdById: uuid("created_by_id")
-        .references(() => users.id, { onDelete: "set null" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
     name: text('name').notNull(),
     type: supplierTypeEnum('type').notNull(),
     destination: text('destination').notNull(),
@@ -171,11 +174,77 @@ export const userCredentials = pgTable("user_credentials", {
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
 });
 
+// ==========================================
+// 3. NEW TABLES: TOUR CATEGORIES & TOURS (ເພີ່ມໃໝ່)
+// ==========================================
+
+// --- Table (Tour Categories) ---
+export const tourCategories = pgTable('tour_categories', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: varchar('name', { length: 100 }).notNull(), // e.g. "Cultural", "Adventure", "Relaxation"
+    slug: varchar('slug', { length: 120 }).notNull().unique(), // e.g. "cultural-tours" ສຳລັບ URL
+    description: text('description'),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
+}, table => [
+    index("tour_categories_slug_idx").on(table.slug),
+]);
+
+// --- Table (Tour Packages / Master Tours) ---
+export const tours = pgTable('tours', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    categoryId: uuid('category_id').references(() => tourCategories.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    slug: varchar('slug', { length: 255 }).notNull().unique(), // URL-friendly (e.g. "luang-prabang-3d2n")
+    summary: text('summary'), // ສັງເຂບຫຍໍ້ສຳລັບ Card ໃນ Landing Page
+    description: text('description'), // ລາຍລະອຽດເຕັມ
+    destination: varchar('destination', { length: 150 }).notNull(), // e.g. "Luang Prabang", "Vang Vieng"
+    durationDays: integer('duration_days').notNull(),
+    durationNights: integer('duration_nights').notNull(),
+
+    // Pricing
+    basePrice: numeric('base_price', { precision: 12, scale: 2 }).notNull(), // ລາຄາເລີ່ມຕົ້ນ
+    currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+
+    // Status flags
+    isFeatured: boolean('is_featured').default(false).notNull(), // ໂຊໃນ Hero/Recommended Section ຂອງ Landing Page
+    isActive: boolean('is_active').default(true).notNull(),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
+}, table => [
+    index("tours_category_id_idx").on(table.categoryId),
+    index("tours_slug_idx").on(table.slug),
+    index("tours_is_featured_idx").on(table.isFeatured),
+]);
+
+// --- Table (Tour Itineraries) ---
+export const tourItineraries = pgTable('tour_itineraries', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tourId: uuid('tour_id').references(() => tours.id, { onDelete: 'cascade' }).notNull(),
+    dayNumber: integer('day_number').notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    meals: text('meals'), // e.g. "B, L, D"
+    accommodation: text('accommodation'),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
+}, table => [
+    index("tour_itineraries_tour_id_idx").on(table.tourId),
+]);
+
+// ==========================================
+// 4. IMAGES (Updated with tourId)
+// ==========================================
+
 export const images = pgTable("images", {
     id: uuid("id").defaultRandom().primaryKey(),
     userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     supplierId: uuid("supplier_id").references(() => suppliers.id, { onDelete: "cascade" }),
-    itineraryId: uuid("itinerary_id").references(() => itineraries.id, { onDelete: "cascade" }),
+    tourId: uuid("tour_id").references(() => tours.id, { onDelete: "cascade" }), //  ເພີ່ມ tourId
+    categoryId: uuid("category_id").references(() => tourCategories.id, { onDelete: "cascade" }), //  ເພີ່ມ categoryId
+    itineraryId: uuid("itinerary_id").references(() => tourItineraries.id, { onDelete: "cascade" }),
     bookingId: uuid("booking_id").references(() => bookings.id, { onDelete: "cascade" }),
     url: text("url").notNull(),
     imageKey: text("image_key").notNull(),
@@ -187,21 +256,21 @@ export const images = pgTable("images", {
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
 }, (table) => [
     index("images_user_id_idx").on(table.userId),
+    index("images_tour_id_idx").on(table.tourId),
     index("images_booking_id_idx").on(table.bookingId),
-    index("images_itinerary_id_idx").on(table.itineraryId),
-    index("images_supplier_id_idx").on(table.supplierId),
     index("images_type_idx").on(table.type),
 ]);
 
 // ==========================================
-// 3. PROJECT 1: CUSTOMER, ENQUIRY & BOOKING
+// 5. ENQUIRIES & BOOKINGS (Updated References)
 // ==========================================
 
 export const enquiries = pgTable('enquiries', {
     id: uuid('id').defaultRandom().primaryKey(),
     customerId: uuid('customer_id')
-        .references(() => users.id, { onDelete: 'cascade' })
+        .references(() => customers.id, { onDelete: 'cascade' }) // ແກ້ Foreign Key ໄປຫາ customers
         .notNull(),
+    tourId: uuid('tour_id').references(() => tours.id, { onDelete: 'set null' }), //  ເພີ່ມ Tour Reference (ຖ້າລູກຄ້າເລືອກຈາກ Landing Page)
     assignedStaffId: uuid('assigned_staff_id').references(() => users.id),
     status: enquiryStatusEnum('status').default("NewEnquiry").notNull(),
     travellerCount: integer('traveller_count').default(1).notNull(),
@@ -212,6 +281,7 @@ export const enquiries = pgTable('enquiries', {
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
 }, table => [
     index("enquiries_customer_id_idx").on(table.customerId),
+    index("enquiries_tour_id_idx").on(table.tourId),
     index("enquiries_status_idx").on(table.status),
 ]);
 
@@ -220,12 +290,12 @@ export const itineraries = pgTable('itineraries', {
     enquiryId: uuid('enquiry_id')
         .references(() => enquiries.id, { onDelete: 'cascade' })
         .notNull(),
-    dayNumber: integer('day_number').notNull(), // Reorderable Sequence
+    dayNumber: integer('day_number').notNull(),
     destination: text('destination').notNull(),
     title: text('title').notNull(),
     description: text('description'),
     accommodation: text('accommodation'),
-    meals: text('meals'), // e.g. "Breakfast, Lunch"
+    meals: text('meals'),
     activities: text('activities'),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
@@ -235,10 +305,11 @@ export const itineraries = pgTable('itineraries', {
 
 export const bookings = pgTable('bookings', {
     id: uuid('id').defaultRandom().primaryKey(),
-    bookingRef: varchar('booking_ref', { length: 20 }).notNull().unique(), // e.g. "BT-2026-001"
+    bookingRef: varchar('booking_ref', { length: 20 }).notNull().unique(),
     enquiryId: uuid('enquiry_id').references(() => enquiries.id),
+    tourId: uuid('tour_id').references(() => tours.id), //  ເພີ່ມ tourId
     customerId: uuid('customer_id')
-        .references(() => users.id)
+        .references(() => customers.id) // ແກ້ Foreign Key ໄປຫາ customers
         .notNull(),
     assignedStaffId: uuid('assigned_staff_id')
         .references(() => users.id)
@@ -251,13 +322,14 @@ export const bookings = pgTable('bookings', {
     // Financial Data
     totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
     depositAmount: numeric('deposit_amount', { precision: 12, scale: 2 }).default('0').notNull(),
-    outstandingBalance: numeric('outstanding_balance', { precision: 12, scale: 2 }).notNull(), // Calculated: total - deposit
+    outstandingBalance: numeric('outstanding_balance', { precision: 12, scale: 2 }).notNull(),
     paymentStatus: paymentStatusEnum('payment_status').default("Unpaid").notNull(),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
 }, table => [
     index("booking_enquiry_id_idx").on(table.enquiryId),
+    index("booking_tour_id_idx").on(table.tourId),
     index("booking_booking_ref_idx").on(table.bookingRef),
     index("booking_customer_id_idx").on(table.customerId),
     index("booking_assigned_staff_id_idx").on(table.assignedStaffId),
@@ -265,18 +337,18 @@ export const bookings = pgTable('bookings', {
 ]);
 
 // ==========================================
-// 4. PROJECT 2: SUPPLIERS, RATES & AUDIT LOGS
+// 6. SUPPLIERS, RATES & AUDIT LOGS
 // ==========================================
 
 export const serviceRates = pgTable('service_rates', {
     id: uuid('id').defaultRandom().primaryKey(),
     supplierId: uuid('supplier_id')
-        .references(() => users.id, { onDelete: 'cascade' })
+        .references(() => suppliers.id, { onDelete: 'cascade' }) // ແກ້ Foreign Key ໄປຫາ suppliers
         .notNull(),
     serviceName: text('service_name').notNull(),
     unitType: unitTypeEnum('unit_type').notNull(),
     cost: numeric('cost', { precision: 12, scale: 2 }).notNull(),
-    currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+    currency: currencyEnum('currency').notNull(),
     validFrom: timestamp('valid_from').notNull(),
     validUntil: timestamp('valid_until').notNull(),
     minGroupSize: integer('min_group_size').default(1),
@@ -291,7 +363,7 @@ export const serviceRates = pgTable('service_rates', {
 export const supplierAvailability = pgTable('supplier_availability', {
     id: uuid('id').defaultRandom().primaryKey(),
     supplierId: uuid('supplier_id')
-        .references(() => users.id, { onDelete: 'cascade' })
+        .references(() => suppliers.id, { onDelete: 'cascade' }) // ແກ້ Foreign Key ໄປຫາ suppliers
         .notNull(),
     date: timestamp('date').notNull(),
     status: availabilityStatusEnum('status').default("Available").notNull(),
@@ -302,7 +374,6 @@ export const supplierAvailability = pgTable('supplier_availability', {
     index("supplier_availability_status_idx").on(table.status),
 ]);
 
-// Price Audit Log System (Requirement: Suspicious Price Protection)
 export const priceHistories = pgTable('price_histories', {
     id: uuid('id').defaultRandom().primaryKey(),
     serviceRateId: uuid('service_rate_id')
@@ -313,8 +384,8 @@ export const priceHistories = pgTable('price_histories', {
     changedByUserId: uuid('changed_by_user_id')
         .references(() => users.id)
         .notNull(),
-    changeReason: text('change_reason').notNull(), // Required when price changes > 30%
-    isSuspicious: boolean('is_suspicious').default(false).notNull(), // Marked true if change > 30%
+    changeReason: text('change_reason').notNull(),
+    isSuspicious: boolean('is_suspicious').default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdateFn(() => new Date()),
 }, table => [
@@ -323,37 +394,48 @@ export const priceHistories = pgTable('price_histories', {
 ]);
 
 // ==========================================
-// 5. DRIZZLE RELATIONS DEFINITION
+// 7. DRIZZLE RELATIONS DEFINITION
 // ==========================================
+
+export const tourCategoriesRelations = relations(tourCategories, ({ many, one }) => ({
+    tours: many(tours),
+    images: many(images),
+}));
+
+export const toursRelations = relations(tours, ({ one, many }) => ({
+    category: one(tourCategories, {
+        fields: [tours.categoryId],
+        references: [tourCategories.id],
+    }),
+    tourItineraries: many(tourItineraries),
+    images: many(images),
+    enquiries: many(enquiries),
+    bookings: many(bookings),
+}));
+
+export const tourItinerariesRelations = relations(tourItineraries, ({ one }) => ({
+    tour: one(tours, {
+        fields: [tourItineraries.tourId],
+        references: [tours.id],
+    }),
+}));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
     credentials: one(userCredentials, {
         fields: [users.id],
         references: [userCredentials.userId],
     }),
-
-    // Staff user created many suppliers
     createdSuppliers: many(suppliers, { relationName: "staff_created_suppliers" }),
-
-    // Supplier user profile
     supplierProfile: one(suppliers, {
         fields: [users.id],
         references: [suppliers.userId],
         relationName: "supplier_user_account",
     }),
-
     images: many(images),
-
-    // staff assignments
     assignedEnquiries: many(enquiries),
     assignedBookings: many(bookings),
-
     priceChanges: many(priceHistories),
 }));
-
-// ==========================================
-// USER CREDENTIALS
-// ==========================================
 
 export const userCredentialsRelations = relations(userCredentials, ({ one }) => ({
     user: one(users, {
@@ -362,141 +444,110 @@ export const userCredentialsRelations = relations(userCredentials, ({ one }) => 
     }),
 }));
 
-// ==========================================
-// CUSTOMERS
-// ==========================================
-
 export const customersRelations = relations(customers, ({ one, many }) => ({
     user: one(users, {
         fields: [customers.userId],
         references: [users.id],
     }),
-
     enquiries: many(enquiries),
     bookings: many(bookings),
 }));
 
-// ==========================================
-// SUPPLIERS
-// ==========================================
-
 export const suppliersRelations = relations(suppliers, ({ one, many }) => ({
-    // Staff member who created this record
     createdBy: one(users, {
         fields: [suppliers.createdById],
         references: [users.id],
         relationName: "staff_created_suppliers",
     }),
-
-    // User account assigned to this supplier
     userAccount: one(users, {
         fields: [suppliers.userId],
         references: [users.id],
         relationName: "supplier_user_account",
     }),
-
     images: many(images),
     serviceRates: many(serviceRates),
     availability: many(supplierAvailability),
 }));
-
-// ==========================================
-// IMAGES
-// ==========================================
 
 export const imagesRelations = relations(images, ({ one }) => ({
     user: one(users, {
         fields: [images.userId],
         references: [users.id],
     }),
-
     supplier: one(suppliers, {
         fields: [images.supplierId],
         references: [suppliers.id],
     }),
-
+    tour: one(tours, {
+        fields: [images.tourId],
+        references: [tours.id],
+    }),
+    category: one(tourCategories, {
+        fields: [images.categoryId],
+        references: [tourCategories.id],
+    }),
     itinerary: one(itineraries, {
         fields: [images.itineraryId],
         references: [itineraries.id],
     }),
-
     booking: one(bookings, {
         fields: [images.bookingId],
         references: [bookings.id],
     }),
 }));
 
-// ==========================================
-// ENQUIRIES
-// ==========================================
-
 export const enquiriesRelations = relations(enquiries, ({ one, many }) => ({
     customer: one(customers, {
         fields: [enquiries.customerId],
         references: [customers.id],
     }),
-
+    tour: one(tours, {
+        fields: [enquiries.tourId],
+        references: [tours.id],
+    }),
     assignedStaff: one(users, {
         fields: [enquiries.assignedStaffId],
         references: [users.id],
     }),
-
     itineraries: many(itineraries),
     bookings: many(bookings),
 }));
-
-// ==========================================
-// ITINERARIES
-// ==========================================
 
 export const itinerariesRelations = relations(itineraries, ({ one, many }) => ({
     enquiry: one(enquiries, {
         fields: [itineraries.enquiryId],
         references: [enquiries.id],
     }),
-
     images: many(images),
 }));
-
-// ==========================================
-// BOOKINGS
-// ==========================================
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
     customer: one(customers, {
         fields: [bookings.customerId],
         references: [customers.id],
     }),
-
+    tour: one(tours, {
+        fields: [bookings.tourId],
+        references: [tours.id],
+    }),
     assignedStaff: one(users, {
         fields: [bookings.assignedStaffId],
         references: [users.id],
     }),
-
     enquiry: one(enquiries, {
         fields: [bookings.enquiryId],
         references: [enquiries.id],
     }),
-
     images: many(images),
 }));
-
-// ==========================================
-// SERVICE RATES
-// ==========================================
 
 export const serviceRatesRelations = relations(serviceRates, ({ one, many }) => ({
     supplier: one(suppliers, {
         fields: [serviceRates.supplierId],
         references: [suppliers.id],
     }),
-
     priceHistories: many(priceHistories),
 }));
-
-// ==========================================
-// SUPPLIER AVAILABILITY
-// ==========================================
 
 export const supplierAvailabilityRelations = relations(supplierAvailability, ({ one }) => ({
     supplier: one(suppliers, {
@@ -505,16 +556,11 @@ export const supplierAvailabilityRelations = relations(supplierAvailability, ({ 
     }),
 }));
 
-// ==========================================
-// PRICE HISTORIES
-// ==========================================
-
 export const priceHistoriesRelations = relations(priceHistories, ({ one }) => ({
     serviceRate: one(serviceRates, {
         fields: [priceHistories.serviceRateId],
         references: [serviceRates.id],
     }),
-
     changedBy: one(users, {
         fields: [priceHistories.changedByUserId],
         references: [users.id],
