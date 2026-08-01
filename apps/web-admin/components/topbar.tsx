@@ -20,13 +20,11 @@ import { SidebarTrigger } from "@workspace/ui/components/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
 import { Bell, LogOut, User, Moon, Sun, Monitor, Globe } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 
 
 export default function TopbarPage() {
-    const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [isOpenDialogSignOut, setIsOpenDialogSignOut] = useState(false);
@@ -36,10 +34,6 @@ export default function TopbarPage() {
         setMounted(true);
     }, []);
 
-    const handleMarkRead = (id: number) => {
-        // setNotifications logic (omitted for brevity)
-    };
-
     if (!mounted) return null;
 
     return (
@@ -47,7 +41,7 @@ export default function TopbarPage() {
             <header className="flex sticky top-0 z-30 h-16 items-center justify-between border-b bg-background px-6">
                 <div className="flex items-center gap-4">
                     <SidebarTrigger />
-                    <h1 className="text-xl font-semibold">Admin</h1>
+                    <h1 className="text-xl font-semibold">Administrator</h1>
                 </div>
 
                 <div className="flex items-center gap-3">

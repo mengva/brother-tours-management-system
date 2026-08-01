@@ -7,3 +7,9 @@ export const unitTypeEnum = pgEnum('unit_type', [
     'PerDay',
     'PerGroup',
 ]);
+
+export const currencyEnum = pgEnum('currency', [
+    "USD",
+    "LAK",
+    "THB"
+]);

@@ -1,17 +1,9 @@
-import { Geist, Geist_Mono, Noto_Sans, Roboto } from "next/font/google"
-
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@workspace/ui/lib/utils";
-
-const robotoHeading = Roboto({subsets:['latin'],variable:'--font-heading'});
-
-const notoSans = Noto_Sans({subsets:['latin'],variable:'--font-sans'})
-
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
+import UserAuthLayoutPage from "@/components/userAuth";
+import { Providers } from "@/components/providers";
+import { TRPCProvider } from "./trpc";
+import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({
   children,
@@ -19,13 +11,26 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", notoSans.variable, robotoHeading.variable)}
-    >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          <div id="web-admin" className="w-full h-screen fixed inset-0 overflow-y-auto">
+            <TRPCProvider>
+              <Providers>
+                <UserAuthLayoutPage>
+                  {children}
+                  <Toaster position="bottom-right" />
+                </UserAuthLayoutPage>
+              </Providers>
+            </TRPCProvider>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   )

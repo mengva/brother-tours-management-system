@@ -15,6 +15,20 @@
       "when": 1785420017672,
       "tag": "0001_silky_eddie_brock",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785558180254,
+      "tag": "0002_aspiring_payback",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785558605024,
+      "tag": "0003_nosy_ultimatum",
+      "breakpoints": true
     }
   ]
 }

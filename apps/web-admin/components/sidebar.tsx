@@ -60,9 +60,7 @@ export default function SidebarPage() {
                     {adminNavigation.map((item) => {
                         const Icon = item.icon;
 
-                        const isParentActive =
-                            pathname === item.href ||
-                            pathname.startsWith(item.href);
+                        const isParentActive = pathname.startsWith(item.href);
 
                         // ------------------------------
                         // MENU WITHOUT CHILDREN
@@ -123,8 +121,7 @@ export default function SidebarPage() {
                                     {item.children.map((child) => {
                                         const ChildIcon = child.icon;
 
-                                        const isChildActive =
-                                            pathname === child.href;
+                                        const isChildActive = pathname.includes(child.href);
 
                                         return (
                                             <Link
