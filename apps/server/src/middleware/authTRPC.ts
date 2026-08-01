@@ -1,8 +1,7 @@
 import { t } from "../server/trpc/procedures";
 import { TRPCError } from "@trpc/server";
 import db from "../config/db";
-import { Helper, tRPCErrorServices } from "../utils";
-import { tokenName } from "@/server/packages/utils";
+import { Helper, tokenName, tRPCErrorServices } from "../utils";
 import type { UserRoleDto } from "@/server/packages/types";
 
 export class tRPCUserAuthMiddleware {

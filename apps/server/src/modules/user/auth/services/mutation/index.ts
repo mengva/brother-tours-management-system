@@ -1,8 +1,7 @@
 import type { MyContext } from "@/server/server/trpc/context";
 import { tRPCAuthServices } from "../../utils";
-import { HandlerSuccess, tRPCErrorServices } from "@/server/utils";
+import { HandlerSuccess, tokenName, tRPCErrorServices } from "@/server/utils";
 import type { ServerResponseDto, UserRoleDto } from "@/server/packages/types";
-import { tokenName } from "@/server/packages/utils";
 
 export class tRPCUserAuthMutationServices {
     public static async signIn(ctx: MyContext): Promise<ServerResponseDto | void> {
