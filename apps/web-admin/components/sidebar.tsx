@@ -49,7 +49,7 @@ export default function SidebarPage() {
                 <div className="w-full flex justify-center items-center gap-2">
                     <Image src={brotherToursLogo} alt="Logo" width={65} height={65} priority/>
                     <h1 className="text-xl font-bold">
-                        Brother Tours
+                        Brother <span className="text-primary">Tours</span>
                     </h1>
                 </div>
             </div>

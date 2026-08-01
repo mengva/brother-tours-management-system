@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@work
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui/components/form";
-import { ZodValidationSignIn, zodValidationSignIn } from "@/admin/packages/validations";
+import { ZodValidationClientSignIn, zodValidationClientSignIn } from "@/admin/packages/validations";
 import { Badge } from "@workspace/ui/components/badge";
 import BrotherTourLogoCom from "@/components/brother-tour-logo";
 import { Eye, EyeOff, LogIn } from "lucide-react";
@@ -22,8 +22,8 @@ export default function SignInPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
 
-    const form = useForm<ZodValidationSignIn>({
-        resolver: zodResolver(zodValidationSignIn),
+    const form = useForm<ZodValidationClientSignIn>({
+        resolver: zodResolver(zodValidationClientSignIn),
         defaultValues: {
             email: "",
             password: "",
@@ -37,7 +37,6 @@ export default function SignInPage() {
                 toast.success(data.message);
                 return (
                     await Promise.all([
-                        // await utils.app.user.get.getUserRole.invalidate(),
                         router.push("/admin/dashboard")
                     ])
                 )
@@ -48,7 +47,7 @@ export default function SignInPage() {
         },
     });
 
-    function onSubmit(values: ZodValidationSignIn) {
+    function onSubmit(values: ZodValidationClientSignIn) {
         signInMutation.mutate(values);
     }
 

@@ -4,7 +4,7 @@ import { index, boolean, pgTable, text, timestamp, uuid, varchar } from "drizzle
 export const tourCategories = pgTable('tour_categories', {
     id: uuid('id').defaultRandom().primaryKey(),
     name: varchar('name', { length: 100 }).notNull(), // e.g. "Cultural", "Adventure", "Relaxation"
-    slug: varchar('slug', { length: 120 }).notNull().unique(), // e.g. "cultural-tours" ສຳລັບ URL
+    slug: varchar('slug', { length: 120 }).notNull().unique(), // e.g. "cultural-tours" for URL
     description: text('description'),
     isActive: boolean('is_active').default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

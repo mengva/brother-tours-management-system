@@ -5,7 +5,6 @@ import {
     integer,
     uuid,
     index,
-    date,
 } from 'drizzle-orm/pg-core';
 import { users } from '../user';
 import { enquiryStatusEnum } from './enum';
@@ -15,9 +14,9 @@ import { tours } from '../tour';
 export const enquiries = pgTable('enquiries', {
     id: uuid('id').defaultRandom().primaryKey(),
     customerId: uuid('customer_id')
-        .references(() => customers.id, { onDelete: 'cascade' }) // ແກ້ Foreign Key ໄປຫາ customers
+        .references(() => customers.id, { onDelete: 'cascade' }) // edit Foreign Key into customers
         .notNull(),
-    tourId: uuid('tour_id').references(() => tours.id, { onDelete: 'set null' }), //  ເພີ່ມ Tour Reference (ຖ້າລູກຄ້າເລືອກຈາກ Landing Page)
+    tourId: uuid('tour_id').references(() => tours.id, { onDelete: 'set null' }), //  add the Tour Reference (in Landing Page)
     assignedStaffId: uuid('assigned_staff_id').references(() => users.id),
     status: enquiryStatusEnum('status').default("NewEnquiry").notNull(),
     travellerCount: integer('traveller_count').default(1).notNull(),

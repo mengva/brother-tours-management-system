@@ -17,6 +17,7 @@ import {
     LogIn,
 } from "lucide-react";
 import BrotherTourLogoCom from "@/components/brother-tour-logo";
+import { FaSpinner } from "react-icons/fa6";
 
 // Define Validation Schema using Zod
 const signInSchema = z.object({
@@ -201,14 +202,13 @@ export default function SignInForm() {
                         className="w-full cursor-pointer py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/50 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:pointer-events-none mt-2"
                     >
                         {isSubmitting ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <FaSpinner className="w-4 h-4 text-white animate-spin" />
                         ) : (
                             <div className="flex gap-1 items-center">
                                     <LogIn/>
                                 <span>
                                     Sign In
                                 </span>
-                                {/* <ArrowRight className="w-4 h-4" /> */}
                             </div>
                         )}
                     </button>

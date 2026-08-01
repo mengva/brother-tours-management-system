@@ -10,24 +10,33 @@ import {
     index,
 } from 'drizzle-orm/pg-core';
 import { tourCategories } from '../tourCategories';
+import { currencyEnum } from '../serviceRate';
 
+// --- Table (Tour Packages / Master Tours) ---
 export const tours = pgTable('tours', {
     id: uuid('id').defaultRandom().primaryKey(),
     categoryId: uuid('category_id').references(() => tourCategories.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
-    slug: varchar('slug', { length: 255 }).notNull().unique(), // URL-friendly (e.g. "luang-prabang-3d2n")
-    summary: text('summary'), // ສັງເຂບຫຍໍ້ສຳລັບ Card ໃນ Landing Page
-    description: text('description'), // ລາຍລະອຽດເຕັມ
-    destination: varchar('destination', { length: 150 }).notNull(), // e.g. "Luang Prabang", "Vang Vieng"
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    summary: text('summary'),
+    description: text('description'),
+    destination: varchar('destination', { length: 150 }).notNull(),
     durationDays: integer('duration_days').notNull(),
     durationNights: integer('duration_nights').notNull(),
 
-    // Pricing
-    basePrice: numeric('base_price', { precision: 12, scale: 2 }).notNull(), // ລາຄາເລີ່ມຕົ້ນ
-    currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+    // ==================== Pricing Fields ( 🚀) ====================
+    basePrice: numeric('base_price', { precision: 12, scale: 2 }).notNull(), // (Adult Price)
+    childPrice: numeric('child_price', { precision: 12, scale: 2 }), //  (Optional)
+    infantPrice: numeric('infant_price', { precision: 12, scale: 2 }), //  (Optional)
+
+    discountPrice: numeric('discount_price', { precision: 12, scale: 2 }), //  / Promotion Price
+    singleSupplementPrice: numeric('single_supplement_price', { precision: 12, scale: 2 }), // 
+    costPrice: numeric('cost_price', { precision: 12, scale: 2 }), // 
+
+    currency: currencyEnum("currency").notNull(), // USD, LAK, THB
 
     // Status flags
-    isFeatured: boolean('is_featured').default(false).notNull(), // ໂຊໃນ Hero/Recommended Section ຂອງ Landing Page
+    isFeatured: boolean('is_featured').default(false).notNull(),
     isActive: boolean('is_active').default(true).notNull(),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

@@ -1,4 +1,5 @@
 
+import type { UserRoleDto } from "@/server/packages/types";
 import type { Context as HonoContext } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
@@ -40,7 +41,7 @@ export const createdTRPCContext = async (c: HonoContext) => {
     ip: ipAddress,
     userInfo: {
       userId: '',
-      role: '',
+      role: '' as UserRoleDto,
     },
     bodyInfo: {} as any,
     userAgent,

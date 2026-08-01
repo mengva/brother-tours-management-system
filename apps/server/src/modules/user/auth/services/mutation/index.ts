@@ -1,7 +1,7 @@
 import type { MyContext } from "@/server/server/trpc/context";
 import { tRPCAuthServices } from "../../utils";
 import { HandlerSuccess, tRPCErrorServices } from "@/server/utils";
-import type { ServerResponseDto } from "@/server/packages/types";
+import type { ServerResponseDto, UserRoleDto } from "@/server/packages/types";
 import { tokenName } from "@/server/packages/utils";
 
 export class tRPCUserAuthMutationServices {
@@ -47,7 +47,7 @@ export class tRPCUserAuthMutationServices {
 
             ctx.userInfo = {
                 userId: '' as string,
-                role: "",
+                role: "" as UserRoleDto,
             }; // Clear user info from context
 
             return HandlerSuccess.success("Logged out successfully");

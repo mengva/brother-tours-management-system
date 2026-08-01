@@ -22,9 +22,14 @@ import { Bell, LogOut, User, Moon, Sun, Monitor, Globe } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { trpc } from "@/app/trpc";
+import { ServerResponseDto } from "@/admin/packages/types";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 
 export default function TopbarPage() {
+    const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [isOpenDialogSignOut, setIsOpenDialogSignOut] = useState(false);
@@ -33,6 +38,23 @@ export default function TopbarPage() {
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    const signOutMutation = trpc.app.user.auth.signOut.useMutation({
+        onSuccess: (data: ServerResponseDto) => {
+            if (data?.success) {
+                toast.success(data.message);
+                return router.push("/auth/signin");
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+        onSettled: () => {
+            setIsOpenDialogSignOut(false);
+        },
+    });
+
+    const isPending = Boolean(signOutMutation.isPending);
 
     if (!mounted) return null;
 
@@ -117,14 +139,24 @@ export default function TopbarPage() {
                         <Button
                             variant="outline"
                             className="cursor-pointer"
+                            onClick={() => setIsOpenDialogSignOut(false)}
                         >
                             Canceled
                         </Button>
                         <Button
                             variant="destructive"
                             className="cursor-pointer"
+                            disabled={isPending}
+                            onClick={() => signOutMutation.mutate()}
                         >
-                            Confirm
+                            {
+                                isPending
+                                    ? <div className="flex items-center gap-1">
+                                        <span className="loading loading-spinner loading-sm"></span>
+                                        <span>Signing out...</span>
+                                    </div>
+                                    : "Confirm"
+                            }
                         </Button>
                     </DialogFooter>
                 </DialogContent>

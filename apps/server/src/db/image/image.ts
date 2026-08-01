@@ -1,15 +1,10 @@
 import {
     pgTable,
     text,
-    varchar,
     timestamp,
     integer,
-    numeric,
-    boolean,
-    pgEnum,
     uuid,
     index,
-    date,
 } from 'drizzle-orm/pg-core';
 import { imageTypeEnum } from './enum';
 import { users } from '../user';
@@ -39,5 +34,8 @@ export const images = pgTable("images", {
     index("images_user_id_idx").on(table.userId),
     index("images_tour_id_idx").on(table.tourId),
     index("images_booking_id_idx").on(table.bookingId),
+    index("images_supplier_id_idx").on(table.supplierId),
+    index("images_category_id_idx").on(table.categoryId),
+    index("images_itinerary_id_idx").on(table.itineraryId),
     index("images_type_idx").on(table.type),
 ]);

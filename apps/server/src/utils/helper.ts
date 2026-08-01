@@ -2,10 +2,11 @@ import * as bcrypt from "bcryptjs"
 import { env } from "../config/env";
 import * as jwt from "jsonwebtoken";
 import * as nodemailer from "nodemailer";
+import type { UserRoleDto } from "@/server/packages/types";
 
 interface PayloadDto {
     userId: string;
-    role: any;
+    role: UserRoleDto;
     userAgent: string;
 }
 
