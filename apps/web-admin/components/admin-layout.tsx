@@ -6,11 +6,10 @@ import { SidebarProvider, SidebarContent } from "@workspace/ui/components/sideba
 import { AppSidebar } from "./app-sidebar"
 import TopbarPage from "./topbar"
 import { trpc } from "@/app/trpc"
-import { adminNavigation, NavItem } from "@/utils/navigation"
+import { adminNavigation, type NavItem } from "@/utils/navigation"
 import LoadingSpinnerComponent from "./loading"
 import NotFound from "@/app/not-found"
 import { usePathname } from "next/navigation"
-
 
 interface AdminLayoutProps {
   children: React.ReactNode
