@@ -4,7 +4,7 @@ export interface CookieOptionDto {
     sameSite: 'strict' | 'lax' | 'none';
     secure: boolean;
     httpOnly: boolean;
-    domain: string;
+    domain?: string;
     maxAge: number;
     path: string;
 }
@@ -18,7 +18,7 @@ export class CookieServices {
         sameSite: this.isProduction ? 'strict' : 'lax',
         secure: this.isProduction,
         httpOnly: true,
-        domain: 'localhost',
+        domain: undefined,
         maxAge: 60 * 60 * 24 * 30, // 30d 
         path: '/',
     }
