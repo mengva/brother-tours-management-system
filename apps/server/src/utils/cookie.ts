@@ -15,7 +15,7 @@ export class CookieServices {
     public static tokenExpriresIn = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30); // 30 days in seconds
 
     public static cookieOption: CookieOptionDto = {
-        sameSite: this.isProduction ? 'strict' : 'lax',
+        sameSite: this.isProduction ? 'lax' : 'lax',
         secure: this.isProduction,
         httpOnly: true,
         domain: undefined,
