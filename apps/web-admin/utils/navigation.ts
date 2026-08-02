@@ -33,6 +33,8 @@ import {
     LucideFolderTree,
 } from "lucide-react";
 
+export type UserRole = "Admin" | "Sales" | "Viewer";
+
 export const adminNavigation = [
     // Dashboard
     {
@@ -40,6 +42,7 @@ export const adminNavigation = [
         href: "/admin/dashboard",
         icon: LucideLayoutDashboard,
         isActive: false,
+        role: ["Admin", "Sales", "Viewer"],
         children: [],
     },
 
@@ -49,24 +52,28 @@ export const adminNavigation = [
         href: "/admin/operations",
         icon: LucideCalendarCheck,
         isActive: false,
+        role: ["Admin", "Sales", "Viewer"],
         children: [
             {
                 name: "Enquiries",
                 href: "/admin/operations/enquiries",
                 icon: LucideMessageSquare,
                 isActive: false,
+                role: ["Admin", "Sales", "Viewer"],
             },
             {
                 name: "Quotations",
                 href: "/admin/operations/quotations",
                 icon: LucideFileText,
                 isActive: false,
+                role: ["Admin", "Sales", "Viewer"],
             },
             {
                 name: "Bookings",
                 href: "/admin/operations/bookings",
                 icon: LucideCalendarCheck,
                 isActive: false,
+                role: ["Admin", "Sales", "Viewer"],
             },
         ],
     },
@@ -77,24 +84,28 @@ export const adminNavigation = [
         href: "/admin/tours-management",
         icon: LucideCompass,
         isActive: false,
+        role: ["Admin", "Sales", "Viewer"],
         children: [
             {
                 name: "Tour Packages",
                 href: "/admin/tours-management/tours",
                 icon: LucideCompass,
                 isActive: false,
+                role: ["Admin", "Sales", "Viewer"],
             },
             {
                 name: "Categories", //  ເພີ່ມ Tour Categories
                 href: "/admin/tours-management/categories",
                 icon: LucideFolderTree,
                 isActive: false,
+                role: ["Admin", "Sales", "Viewer"],
             },
             {
                 name: "Destinations",
                 href: "/admin/tours-management/destinations",
                 icon: LucideMapPin,
                 isActive: false,
+                role: ["Admin", "Sales", "Viewer"],
             },
         ],
     },
@@ -105,24 +116,28 @@ export const adminNavigation = [
         href: "/admin/suppliers-management",
         icon: LucideBuilding2,
         isActive: false,
+        role: ["Admin", "Sales"],
         children: [
             {
                 name: "Suppliers",
                 href: "/admin/suppliers-management/suppliers",
                 icon: LucideBuilding2,
                 isActive: false,
+                role: ["Admin", "Sales"],
             },
             {
                 name: "Service Rates",
                 href: "/admin/suppliers-management/service-rates",
                 icon: LucideDollarSign,
                 isActive: false,
+                role: ["Admin", "Sales"],
             },
             {
                 name: "Price Audit Logs",
                 href: "/admin/suppliers-management/price-audits",
                 icon: LucideHistory,
                 isActive: false,
+                role: ["Admin", "Sales"],
             },
         ],
     },
@@ -133,18 +148,21 @@ export const adminNavigation = [
         href: "/admin/users-management",
         icon: LucideUsers,
         isActive: false,
+        role: ["Admin", "Sales"],
         children: [
             {
                 name: "Customers",
                 href: "/admin/users-management/customers",
                 icon: LucideUserCheck,
                 isActive: false,
+                role: ["Admin", "Sales"],
             },
             {
                 name: "System Users",
                 href: "/admin/users-management/users",
                 icon: LucideUsers,
                 isActive: false,
+                role: ["Admin", "Sales"],
             },
         ],
     },
@@ -156,5 +174,6 @@ export const adminNavigation = [
         icon: LucideSettings,
         isActive: false,
         children: [],
+        role: ["Admin"],
     },
 ];

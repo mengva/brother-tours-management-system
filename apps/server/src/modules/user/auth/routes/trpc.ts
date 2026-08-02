@@ -2,6 +2,7 @@ import { publicProcedure, router } from "@/server/server/trpc/procedures";
 import { tRPCUserAuthMutationServices } from "../services/mutation";
 import { tRPCUserAuthMiddleware } from "@/server/middleware/authTRPC";
 import { zodValidationSendOTPToEmail, zodValidationServerResetPassword, zodValidationSignIn, zodValidationSignInOTP } from "@/server/packages/validations";
+import { HandlerSuccess, tRPCErrorServices } from "@/server/utils";
 
 export const tRPCUserAuthRouter = router({
     signIn: publicProcedure
@@ -61,5 +62,20 @@ export const tRPCUserAuthRouter = router({
             ctx.bodyInfo = { ...input }; // Store the original input for logging or debugging purposes
             return await tRPCUserAuthMutationServices.resetPassword(ctx);
         }),
+
+
+    getUserAuth: publicProcedure
+        .use(tRPCUserAuthMiddleware.isUserAuth)
+        .query(async ({ ctx }) => {
+            try {
+
+                const userAuthInfo = ctx.userInfo ?? {};
+
+                return HandlerSuccess.success("User authentication information retrieved successfully?", userAuthInfo);
+
+            } catch (error) {
+                throw tRPCErrorServices.tRPCError(error);
+            }
+        })
 
 });

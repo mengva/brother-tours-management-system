@@ -4,9 +4,9 @@ import { getUserAgent } from "../server/trpc/context";
 import { Context as HonoContext } from "hono";
 import { userCredentials, users } from "../db";
 
-export const generateUser = async (ctx: HonoContext) => {
+export const generateAdminUser = async (ctx: HonoContext) => {
     try {
-        const email = "mengvaprogamemin@gmail.com";
+        const adminEmail = "admin@brothertours.com";
 
         const userAgent = getUserAgent(ctx);
 
@@ -17,7 +17,7 @@ export const generateUser = async (ctx: HonoContext) => {
 
         const userInfo = await db.query.users.findFirst({
             where: (users, { eq, and }) => and(
-                eq(users.email, email),
+                eq(users.email, adminEmail),
                 eq(users.isActive, true),
             ),
         });
@@ -27,18 +27,17 @@ export const generateUser = async (ctx: HonoContext) => {
             return;
         }
 
-        // const password = "yerleeRental09@&.com";
-        const password = "Mengva004@";
+        const adminPassword = "Admin@123"
 
-        const hashedPassword = await Helper.bcryptHash(password);
+        const hashedPassword = await Helper.bcryptHash(adminPassword);
 
         await db.transaction(async (tx) => {
 
             const [newUser] = await tx.insert(users).values({
-                fullName: "Mengva chuepor",
-                email: email,
+                fullName: "Admin User",
+                email: adminEmail,
                 gender: "male",
-                phoneNumber: "2057364321",
+                phoneNumber: "2011223344",
                 role: "Admin",
                 userAgent: userAgent,
                 permissions: ["Create", "Delete", "Read", "Update", "Rollback"]

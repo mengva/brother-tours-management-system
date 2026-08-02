@@ -37,6 +37,7 @@ export default function SignInPage() {
                 toast.success(data.message);
                 return (
                     await Promise.all([
+                        utils.app.user.auth.getUserAuth.invalidate(),
                         router.push("/admin/dashboard")
                     ])
                 )
