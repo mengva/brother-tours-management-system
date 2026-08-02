@@ -84,7 +84,7 @@ export class RefreshTokenMiddleware {
                     return;
                 }
 
-                setCookie(ctx, cookieName, result.token, CookieServices.cookieOption);
+                setCookie(ctx, tokenName, result.token, CookieServices.cookieOption);
                 return HandlerSuccess.success("Token has been extended for another period");
             }
 

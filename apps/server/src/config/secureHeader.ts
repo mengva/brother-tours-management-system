@@ -5,12 +5,12 @@ import { env } from "./env";
 export class SecurityHeaders {
     public static setupCORS(app: Hono) {
         const allowedOrigins = env('NODE_ENV') === 'production'
-            // ? [...env("CORS_ORIGIN").split(",").map(c => c.trim())]
-            ? [
-                "brother-tours-management-system-web-ashen.vercel.app",
-                "brother-tours-management-system-web-admin-eb9m-lm3ek422j.vercel.app",
-                "https://brother-tours-management-system-web-five.vercel.app"
-            ]
+            ? [...env("CORS_ORIGIN").split(",").map(c => c.trim())]
+            // ? [
+            //     "https://brother-tours-management-system-web-ashen.vercel.app",
+            //     "https://brother-tours-management-system-web-admin-eb9m-lm3ek422j.vercel.app",
+            //     "https://brother-tours-management-system-web-five.vercel.app"
+            // ]
             : ['http://localhost:3000', 'http://localhost:3001'];
 
         return app.use("/*", cors({
