@@ -37,8 +37,8 @@ Github Link: https://github.com/mengva/brother-tours-management-system.git
 A full-stack monorepo web application for managing tour packages, bookings, and operations.
 
 ## 🔗 Deployed Links
-- **Web Admin Portal:** [https://brother-tours-management-system-web-admin-1v1p0o3nm.vercel.app](https://brother-tours-management-system-web-admin-1v1p0o3nm.vercel.app)
-- **Web Landing (Customer):** [https://brother-tours-web-landing.vercel.app](https://brother-tours-web-landing.vercel.app)
+- **Web Admin Portal:** [https://brother-tours-management-system-web-roan.vercel.app/auth/signin]
+- **Web Landing (Customer):** [https://brother-tours-management-system-web-phi.vercel.app/home]
 - **Backend API:** Hosted on Render
 - **Database:** PostgreSQL on Supabase
 
@@ -53,58 +53,43 @@ A full-stack monorepo web application for managing tour packages, bookings, and 
 
 ### Database ER Diagram
 *(ໃສ່ Link ຮູບ ER Diagram ຫຼື ອະທິບາຍ Table Schema ຢູ່ບ່ອນນີ້)*
+![alt text](brother_tour_EFD.pgerd.png)
 - `User`: Handles authentication and roles (ADMIN, SALES, VIEWER).
+- 
 - `User Crediental`: Get a user password or crediential
-- `Tour`: Tour packages info, duration, price, images.
+- 
+- `Tour_categories`:  Manages categories for grouping tour packages.
+- 
+- `Tours`: Tour packages info, duration, price, images.
+- 
+- `Tour_itineraries`: Defines day-by-day itineraries (day numbers, titles, meal arrangements, accommodation) tied directly to a master Tour.
+- 
+- `Itineraries`: Custom day-by-day itinerary proposals tailored specifically to a customer's enquiry.
+- 
 - `Booking`: Customer booking details and status.
+- 
+- `Invoices`: Billing documentation linked to bookings. Calculates subtotal, tax, discounts, paid amounts, and due balances with issue/due dates.
+- 
+- `Payments`: Records financial transactions made against bookings and invoices. Captures payment methods (e.g., ONEPAY, BCEL QR, Cash, Transfer), transaction status, and timestamps.
+- 
+- `Suppliers`:Stores third-party vendor details (hotels, transport providers, guides) linked to specific destinations and contact persons.
+- 
+- `Service_rates`:Tracks seasonal or group-size cost rates provided by suppliers.
+- 
+- `Supplier_availability`:Logs daily booking availability for external suppliers.
+- 
+- `Price_histories`:Audit log that tracks price modifications in service_rates to detect anomalies (isSuspicious) and audit user changes.
+- 
+- `Images`:Polymorphic/flexible media table storing cloud file URLs and keys. Dynamically links images to users, suppliers, tours, categories, itineraries, or bookings via foreign key references.
 
 
-1. 👥 User Management & Authentication
-users: Central table for system staff and platform users. Stores identity details, account status (isActive), roles (role), granular permissions (permissions array), and session metadata (userAgent).
-
-user_credentials: Stores hashed passwords (passwordHash) separated from the main users table for enhanced security (1-to-1 relationship with users).
-
-customers: Represents end-client profiles. Contains identity numbers, passport information, contact numbers (including WhatsApp), and location details. Can optionally link to a system User ID (userId).
-
-2. 🧳 Tour Packages & Master Data
-tour_categories: Manages categories for grouping tour packages (e.g., Adventure, Cultural). Includes unique URL slugs for SEO routing.
-
-tours: The core catalog table for master tour packages. Holds pricing models (adult base price, child, infant, discount, single supplement, and internal cost), durations, destinations, and status flags (isFeatured, isActive).
-
-tour_itineraries: Defines day-by-day itineraries (day numbers, titles, meal arrangements, accommodation) tied directly to a master Tour.
-
-3. 📩 Enquiries & Bookings Flow
-enquiries: Tracks incoming customer requests from the Landing Page or manual input. Holds travel dates, passenger counts, and assignment to staff members (assignedStaffId).
-
-itineraries: Custom day-by-day itinerary proposals tailored specifically to a customer's enquiry.
-
-bookings: Main transaction table generated from confirmed enquiries or direct tour selections. Generates a unique bookingRef and tracks financial states (totalAmount, depositAmount, outstandingBalance, and paymentStatus).
-
-4. 💳 Finance & Billing
-invoices: Billing documentation linked to bookings. Calculates subtotal, tax, discounts, paid amounts, and due balances with issue/due dates.
-
-payments: Records financial transactions made against bookings and invoices. Captures payment methods (e.g., ONEPAY, BCEL QR, Cash, Transfer), transaction status, and timestamps.
-
-5. 🏢 Suppliers & Rate Management
-suppliers: Stores third-party vendor details (hotels, transport providers, guides) linked to specific destinations and contact persons.
-
-service_rates: Tracks seasonal or group-size cost rates provided by suppliers.
-
-supplier_availability: Logs daily booking availability for external suppliers.
-
-price_histories: Audit log that tracks price modifications in service_rates to detect anomalies (isSuspicious) and audit user changes.
-
-6. 🖼️ Media & File Attachments
-images: Polymorphic/flexible media table storing cloud file URLs and keys. Dynamically links images to users, suppliers, tours, categories, itineraries, or bookings via foreign key references.
----
-
-## 🔑 Test Accounts (บัญชีทดสอบ)
+## 🔑 Test Accounts
 
 | Role | Email | Password |
 |---|---|---|
-| **Admin** | admin@brothertours.com | Admin@123! |
-| **Sales** | sales@brothertours.com | Sales@123! |
-| **Viewer** | viewer@brothertours.com | Viewer@123! |
+| **Admin** | admin@brothertours.com | Admin@123 |
+| **Sales** | sales@brothertours.com | Sales@123 |
+| **Viewer** | viewer@brothertours.com | Viewer@123 |
 
 ---
 
@@ -113,24 +98,81 @@ images: Polymorphic/flexible media table storing cloud file URLs and keys. Dynam
 Create `.env` file in the root and respective sub-packages:
 
 ```env
-# Database Connection
+# Database Connection server
 DATABASE_URL="postgresql://postgres:1234@localhost:5432/brother_tours_db?schema=public"
 PORT=5050
-NODE_ENV=production
+NODE_ENV=development
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRES_IN=30d
-
-# API Configuration
-NEXT_PUBLIC_API_URL="http://localhost:5050"
-
-# JWT / Auth Secret
 
 CORS_ORIGIN='http://localhost:3000,http://localhost:3001'
 
 USER_SECRET="934198Eo9dbdhsyw86678XoNIP0045"
 SESSION_SECRET="Eo8XoN98867IPpsWci98dbdhsyw8667FR2iR_jUEIFEE02345"
 
-# Uptsash redis catch 
-
 UPSTASH_REDIS_REST_URL=https://pleasing-pup-69269.upstash.io
 UPSTASH_REDIS_REST_TOKEN=gQAAAAAAAQ6VAAIncDFhZWE2YjVkNmI1ZTg0ZTU0YWQ2ZTU3MjM1ZDUwZTViYnAxNjkyNjk
+
+#RESEND
+RESEND_API_KEY=re_bhQviEXo_7V6obMpb4eSBTHyHnDqWSqSD
+
+# nodemailer
+EMAIL_ADDRESS=sabaiydev09@gmail.com
+EMAIL_PASSWORD=niripawbbojwaxvo
+
+# UPLOADTHING
+UPLOADTHING_SECRET='sk_live_f875c43ba189104ac61edec4a758d727fe6e0c886740580e08904b03be0d03e2'
+UPLOADTHING_APP_ID='qgrk3zal5f'
+
+# CLOUDINARY
+CLOUDINARY_API_KEY=934198866779635
+CLOUDINARY_NAME=dbdohhsyw
+CLOUDINARY_SECRET=2N35Eo8XoNIPpsWciFR2iR_jUEI
+CLOUDINARY_URL=cloudinary://934198866779635:2N35Eo8XoNIPpsWciFR2iR_jUEI@dbdohhsyw
+
+# API Configuration web-admin and landing
+NEXT_PUBLIC_API_URL="http://localhost:5050"
+
+
+
+## ⚠️ Known Limitations & Future Improvements
+
+### Current Limitations:
+1. **Render Free Tier Cold Starts:** The backend API hosted on Render's free tier spins down after inactivity, causing an initial 30-second response latency (Cold Start) on the first request.
+2. **File Upload Limit:** Images are uploaded using local cloud key identifiers. AWS S3 / Cloudinary integration is fully structured but currently mocked/limited to basic URLs.
+
+### Future Enhancements (With more time):
+- **Webhooks & Real-time Notifications:** Implement Socket.io / Supabase Realtime for instant notification of new bookings and supplier price changes.
+- **Redis Caching:** Expand Upstash Redis caching layer to cover tour search filtering and dynamic dashboard metrics for ultra-fast response times.
+
+
+## 🧪 Automated Tests (5 Required Scenarios)
+
+Automated tests are implemented using **Vitest** for backend business logic. 
+
+Run tests locally:
+```bash
+pnpm test
+
+
+
+
+
+---
+
+### 4. 🧠 Technical Screening & Problem Solving Answers
+
+```markdown
+## 🧠 Technical Architecture & Incident Handling Notes
+
+### 1. Overbooking Prevention (Concurrency Control)
+- **Solution:** Utilized **Database Transactions with Pessimistic Locking** (`SELECT ... FOR UPDATE` via PostgreSQL/Drizzle) during booking creation to lock seat capacity rows until the transaction completes, preventing double-booking on simultaneous requests.
+
+### 2. Payment Succeeded but Booking Creation Failed (Resiliency)
+- **Solution:** Implemented **Idempotency Keys** sent with payment gateways and transactional DB rollbacks. If payment callback arrives without a booking record, a background job uses Webhook Retries to rebuild the booking or flag for manual reconciliation.
+
+### 3. Dashboard Performance Optimization (1M+ Records)
+- **Solution:** Applied **Database Indexing** on high-frequency columns (`createdAt`, `status`, `userId`), implemented pagination, and leveraged **Upstash Redis** to cache summary metrics with a 5-minute TTL invalidation on new entries.
+
+### 4. Supplier Price Anomaly Protection & Audit Recovery
+- **Solution:** Any price change exceeding **30% threshold** triggers a UI Warning modal requiring a written audit reason. All edits write to `price_histories` (Audit Log). Admins can inspect logs and execute a **Point-In-Time Restore (Rollback)** using historical rate IDs.
