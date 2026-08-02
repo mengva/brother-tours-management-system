@@ -87,9 +87,9 @@ A full-stack monorepo web application for managing tour packages, bookings, and 
 
 | Role | Email | Password |
 |---|---|---|
-| **Admin** | admin@brothertours.com | Admin@123! |
-| **Sales** | sales@brothertours.com | Sales@123! |
-| **Viewer** | viewer@brothertours.com | Viewer@123! |
+| **Admin** | admin@brothertours.com | Admin@123 |
+| **Sales** | sales@brothertours.com | Sales@123 |
+| **Viewer** | viewer@brothertours.com | Viewer@123 |
 
 ---
 
