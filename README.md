@@ -28,10 +28,6 @@ import { Button } from "@workspace/ui/components/button";
 
 # 🧳 Brother Tours Management System
 
-1. ✅ **GitHub Repository:** (Public)
-
-Github Link: https://github.com/mengva/brother-tours-management-system.git
-
 2. ✅ **Deployed Link:** Link on Vercel
 
 A full-stack monorepo web application for managing tour packages, bookings, and operations.
@@ -81,39 +77,6 @@ A full-stack monorepo web application for managing tour packages, bookings, and 
 - `Price_histories`:Audit log that tracks price modifications in service_rates to detect anomalies (isSuspicious) and audit user changes.
 - 
 - `Images`:Polymorphic/flexible media table storing cloud file URLs and keys. Dynamically links images to users, suppliers, tours, categories, itineraries, or bookings via foreign key references.
-
-
-## 🔑 Test Accounts
-
-| Role | Email | Password |
-|---|---|---|
-| **Admin** | admin@brothertours.com | Admin@123 |
-| **Sales** | sales@brothertours.com | Sales@123 |
-| **Viewer** | viewer@brothertours.com | Viewer@123 |
-
----
-
-## ⚙️ Environment Variables (`.env`)
-
-Create `.env` file in the root and respective sub-packages:
-
-```env
-# Database Connection server
-DATABASE_URL="postgresql://postgres:1234@localhost:5432/brother_tours_db?schema=public"
-PORT=5050
-NODE_ENV=development
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRES_IN=30d
-
-CORS_ORIGIN='http://localhost:3000,http://localhost:3001'
-
-USER_SECRET="demo"
-SESSION_SECRET=demo"
-
-
-# API Configuration web-admin and landing
-NEXT_PUBLIC_API_URL="http://localhost:5050"
-
 
 
 ## ⚠️ Known Limitations & Future Improvements
