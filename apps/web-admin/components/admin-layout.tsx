@@ -8,6 +8,8 @@ import TopbarPage from "./topbar"
 import { trpc } from "@/app/trpc"
 import { adminNavigation, NavItem } from "@/utils/navigation"
 import LoadingSpinnerComponent from "./loading"
+import NotFound from "@/app/not-found"
+import { usePathname } from "next/navigation"
 
 
 interface AdminLayoutProps {
@@ -36,6 +38,7 @@ export const AdminLayoutContext = createContext<AdminLayoutContextProps>({
 
 const AdminLayoutPage = memo(({ children }: AdminLayoutProps) => {
 
+  const path = usePathname();
   const [mounted, setMounted] = useState(false);
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([]);
   const [user, setUser] = useState<{
@@ -62,24 +65,46 @@ const AdminLayoutPage = memo(({ children }: AdminLayoutProps) => {
     role: UserRoleDto;
   } | null;
 
+  const handleFilterNavigationItems = (userRole: UserRoleDto) => {
+    const filteredNavigationItems = adminNavigation.filter((item) => {
+      // Check if the item has a role property and if it includes the user's role
+      if (item.role && item.role.includes(userRole)) {
+        if (item.children && item.children.length > 0) {
+          item.children = item.children.filter((child) => child.role && child.role.includes(userRole));
+        }
+        return true;
+      }
+      return false;
+    });
+    return filteredNavigationItems;
+  };
+
   useEffect(() => {
     if (userInfo) {
       const { role } = userInfo;
       setUser(userInfo);
-      const filteredNavigationItems = adminNavigation.filter((item) => {
-        // Check if the item has a role property and if it includes the user's role
-        if (item.role && item.role.includes(role)) {
-          // If the item has children, filter them based on the user's role
-          if (item.children && item.children.length > 0) {
-            item.children = item.children.filter((child) => child.role && child.role.includes(role));
-          }
-          return true;
-        }
-        return false;
-      });
+
+      const filteredNavigationItems = handleFilterNavigationItems(role);
+
       setNavigationItems(filteredNavigationItems);
     }
   }, [userInfo]);
+
+  const handleCheckUserPermission = (navigations: NavItem[]) => {
+    return navigations.some(nav => {
+      if (nav.children.length > 0) {
+        return nav.children.some(child => path.startsWith(child.href));
+      }
+      return path.startsWith(nav.href);
+    });
+  }
+
+  if (user && user.role) {
+    const isRoute = handleCheckUserPermission(navigationItems);
+    if (!isRoute) {
+      return <NotFound />
+    }
+  }
 
   if (!mounted) {
     // Prevent hydration mismatch
