@@ -15,7 +15,7 @@ import {
 
 import Image from "next/image";
 import brotherToursLogo from "../public/images/brother_tours.png";
-import { NavItem } from "@/utils/navigation";
+import type { NavItem } from "@/utils/navigation";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 
 export default function SidebarPage({ navigationItems }: { navigationItems: NavItem[] }) {

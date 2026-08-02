@@ -23,7 +23,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { trpc } from "@/app/trpc";
-import { ServerResponseDto } from "@/admin/packages/types";
+import type { ServerResponseDto } from "@/admin/packages/types";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 

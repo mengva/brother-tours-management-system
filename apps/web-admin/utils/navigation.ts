@@ -1,10 +1,11 @@
-import { IconType } from "react-icons";
+import type { IconType } from "react-icons";
 
 // -------------------- Types --------------------
 export type NavChild = {
     name: string;
     href: string;
     icon: IconType;
+    role: UserRole[];
     isActive: boolean;
 };
 
@@ -12,6 +13,7 @@ export type NavItem = {
     name: string;
     href: string;
     icon: IconType;
+    role: UserRole[];
     isActive: boolean;
     children: NavChild[];
 };
@@ -35,7 +37,7 @@ import {
 
 export type UserRole = "Admin" | "Sales" | "Viewer";
 
-export const adminNavigation = [
+export const adminNavigation: NavItem[] = [
     // Dashboard
     {
         name: "Dashboard",
