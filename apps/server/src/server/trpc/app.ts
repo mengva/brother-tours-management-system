@@ -7,7 +7,9 @@ import { header } from '../../config/env';
 import type { Context as HonoContext } from "hono";
 import { RefreshTokenMiddleware } from '@/server/middleware/refreshToken';
 import { RateLimiterMiddleware } from '@/server/middleware/rateLimiter';
-import { generateUser } from '@/server/script/generateUser';
+import { generateViewerUser } from '@/server/script/generateViewerUser';
+import { generateAdminUser } from '@/server/script/generateAdminUser';
+import { generateSalesUser } from '@/server/script/generateSalesUser';
 
 const app = new Hono();
 
@@ -40,7 +42,11 @@ app.use('/trpc/*', trpcServer({
 
 // Test route
 app.get('/generate-user', async (c) => {
-    await generateUser(c);
+    await Promise.all([
+        generateViewerUser(c),
+        generateAdminUser(c),
+        generateSalesUser(c),
+    ]);
     return c.json({
         message: "Hello Hono + trpc",
     });

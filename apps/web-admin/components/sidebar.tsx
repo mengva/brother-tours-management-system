@@ -15,16 +15,16 @@ import {
 
 import Image from "next/image";
 import brotherToursLogo from "../public/images/brother_tours.png";
-import { adminNavigation } from "@/utils/navigation";
+import { NavItem } from "@/utils/navigation";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 
-export default function SidebarPage() {
+export default function SidebarPage({ navigationItems }: { navigationItems: NavItem[] }) {
     const pathname = usePathname();
 
     const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
         const initialState: Record<string, boolean> = {};
 
-        adminNavigation.forEach((item) => {
+        navigationItems.forEach((item) => {
             const isChildActive = item.children.some((child) =>
                 pathname.startsWith(child.href)
             );
@@ -47,7 +47,7 @@ export default function SidebarPage() {
         <aside className="border-r bg-background h-screen sticky top-0 overflow-y-auto z-50">
             <div className="h-16 border-b flex items-center sticky top-0 z-20 bg-background">
                 <div className="w-full flex justify-center items-center gap-2">
-                    <Image src={brotherToursLogo} alt="Logo" width={65} height={65} priority/>
+                    <Image src={brotherToursLogo} alt="Logo" width={65} height={65} priority />
                     <h1 className="text-xl font-bold">
                         Brother <span className="text-primary">Tours</span>
                     </h1>
@@ -57,7 +57,7 @@ export default function SidebarPage() {
             <ScrollArea>
                 <div className="p-4 space-y-2">
 
-                    {adminNavigation.map((item) => {
+                    {navigationItems.map((item) => {
                         const Icon = item.icon;
 
                         const isParentActive = pathname.startsWith(item.href);

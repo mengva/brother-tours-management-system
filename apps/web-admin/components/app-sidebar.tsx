@@ -6,13 +6,14 @@ import {
     SidebarHeader,
 } from "@workspace/ui/components/sidebar"
 import SidebarPage from "./sidebar"
+import { NavItem } from "@/utils/navigation"
 
-export function AppSidebar() {
+export function AppSidebar({ navigationItems }: { navigationItems: NavItem[] }) {
     return (
         <Sidebar>
             {/* <SidebarHeader /> */}
             <SidebarContent>
-                <SidebarPage />
+                <SidebarPage navigationItems={navigationItems} />
             </SidebarContent>
             {/* <SidebarFooter /> */}
         </Sidebar>
