@@ -1,7 +1,8 @@
 {
   "extends": "@workspace/typescript-config/nextjs.json",
   "compilerOptions": {
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": false,
     "paths": {
       "@/*": [
         "./*"
