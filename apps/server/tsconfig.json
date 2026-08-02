@@ -3,7 +3,8 @@
 {
   "compilerOptions": {
     "strict": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": false,
     "skipLibCheck": true,
     "types": [
       "node"
