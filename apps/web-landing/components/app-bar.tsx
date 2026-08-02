@@ -18,7 +18,7 @@ function AppBarPage() {
     const pathname = usePathname(); // 2. Get current path
 
     return (
-        <div>
+        <>
             {/* ==================== 1. APP BAR (HEADER) ==================== */}
             <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all">
                 {/* Top Mini Info Bar */}
@@ -159,7 +159,7 @@ function AppBarPage() {
                     </div>
                 )}
             </header>
-        </div>
+        </>
     );
 }
 
