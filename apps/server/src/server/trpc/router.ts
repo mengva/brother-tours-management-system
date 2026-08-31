@@ -1,10 +1,10 @@
-import { tRPCUserAuthRouter } from "@/server/modules/user/auth/routes/trpc";
+import { tRPCUserAuthRouter } from "@/server/modules/user/auth/routes";
 import { router } from "./procedures";
 
 export const appRouter = router({
   app: router({
     user: router({
-      auth: tRPCUserAuthRouter
+      auth: tRPCUserAuthRouter,
     })
   })
 });

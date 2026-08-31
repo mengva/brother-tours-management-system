@@ -1,6 +1,6 @@
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import type { Context as HonoContext } from "hono"
-import { tRPCErrorServices } from '../utils';
+import { AppError } from '../utils';
 
 export class RateLimiterMiddleware {
     public static authLimiter = new RateLimiterMemory({
@@ -84,7 +84,7 @@ export class RateLimiterMiddleware {
                 await this.rateLimitAPI(c);
             }
         } catch {
-            throw tRPCErrorServices.message(
+            throw new AppError(
                 "Too many requests",
                 "TOO_MANY_REQUESTS"
             );

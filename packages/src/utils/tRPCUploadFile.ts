@@ -1,8 +1,8 @@
 
 import { ErrorHandler } from "./handleError";
-import { maxFileSize } from "./constants";
 import { FileDto } from "../types";
 import { SecureFileUploadServices } from "./secureFile";
+import { MAX_FILE_SIZE } from "../validations";
 
 interface UploadFileDto {
     message: string;
@@ -16,7 +16,7 @@ interface UploadFilesDto {
     error: boolean;
 }
 
-export class ClientUploadFileServices {
+export class tRPCUploadFileServices {
 
     public static async uploadFileFunc(file: File): Promise<FileDto> {
         return new Promise((resolve, reject) => {
@@ -46,7 +46,7 @@ export class ClientUploadFileServices {
             error: true,
         };
 
-        const validFile = file.size > maxFileSize;
+        const validFile = file.size > MAX_FILE_SIZE;
 
         if (validFile) {
             return {
@@ -76,15 +76,17 @@ export class ClientUploadFileServices {
     }
 
     public static async uploadFiles(files: File[]): Promise<UploadFilesDto> {
+
+        if (files.length === 0) return {
+            message: "Files is required",
+            files: [],
+            error: true,
+        }
+
         try {
-            if (files.length === 0) return {
-                message: "Files is required",
-                files: [],
-                error: true,
-            }
 
             // check max file size
-            const validFiles = files.filter(file => file.size <= maxFileSize);
+            const validFiles = files.filter(file => file.size <= MAX_FILE_SIZE);
 
             // convert file 
             const resultFiles = await Promise.all(

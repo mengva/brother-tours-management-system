@@ -1,12 +1,7 @@
 import {
     pgTable,
-    text,
     varchar,
     timestamp,
-    integer,
-    numeric,
-    boolean,
-    pgEnum,
     uuid,
     index,
     date,

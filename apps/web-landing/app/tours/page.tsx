@@ -18,7 +18,6 @@ import {
     ShieldCheck,
     Calendar,
 } from "lucide-react";
-import { NAV_ITEMS } from "@/utils/navigation";
 
 // Mock Tours Data
 const TOURS_DATA = [

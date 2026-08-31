@@ -1,5 +1,5 @@
 import z from "zod";
-import { zodValidationBirthday, zodValidationClientPassword, zodValidationConfirmPassword, zodValidationEmail, zodValidationFullName, zodValidationGender, zodValidationOTPCode, zodValidationPassword, zodValidationPhoneNumber } from "./constants";
+import { zodValidationBirthday, zodValidationClientPassword, zodValidationConfirmPassword, zodValidationEmail, zodValidationFullName, zodValidationGender, zodValidationOTPCode, zodValidationPassword, zodValidationPhoneNumber, zodValidationWhatsAppPhoneNumber } from "./constants";
 
 export const zodValidationSignIn = z.object({
     email: zodValidationEmail,
@@ -19,7 +19,8 @@ export const zodValidationSignUp = z.object({
     fullName: zodValidationFullName,
     email: zodValidationEmail,
     gender: zodValidationGender,
-    birthDay: zodValidationBirthday,
+    // birthDay: zodValidationBirthday,
+    whatsappNumber: zodValidationWhatsAppPhoneNumber,
     phoneNumber: zodValidationPhoneNumber,
     password: zodValidationPassword,
     confirmPassword: zodValidationConfirmPassword
@@ -55,6 +56,7 @@ export const zodValidationServerResetPassword = z.object({
     code: zodValidationOTPCode,
     password: zodValidationPassword,
 })
+
 export type ZodValidationSignIn = z.infer<typeof zodValidationSignIn>;
 export type ZodValidationClientSignIn = z.infer<typeof zodValidationClientSignIn>;
 export type ZodValidationSignInOTP = z.infer<typeof zodValidationSignInOTP>;

@@ -1,5 +1,7 @@
+import type { Context as HonoContext } from "hono";
+
 export class HandlerSuccess {
-    public static success(message: string, data: any = {}) {
+    public static tRPCSuccess(message: string, data: any = {}) {
         return {
             success: true,
             message,

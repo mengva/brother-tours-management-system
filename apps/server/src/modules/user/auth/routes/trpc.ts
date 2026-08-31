@@ -1,80 +1,70 @@
-import { publicProcedure, router } from "@/server/server/trpc/procedures";
+import { guestProcedure, protectedProcedure, router } from "@/server/server/trpc/procedures";
 import { tRPCUserAuthMutationServices } from "../services/mutation";
-import { tRPCUserAuthMiddleware } from "@/server/middleware/authTRPC";
-import { zodValidationSendOTPToEmail, zodValidationServerResetPassword, zodValidationSignIn, zodValidationSignInOTP } from "@/server/packages/validations";
-import { HandlerSuccess, tRPCErrorServices } from "@/server/utils";
+import { zodValidationSendOTPToEmail, zodValidationServerResetPassword, zodValidationSignIn, zodValidationSignInOTP, zodValidationSignUp } from "@/server/packages/validations";
+import { HandlerSuccess, handleTRPCError } from "@/server/utils";
 
 export const tRPCUserAuthRouter = router({
-    signIn: publicProcedure
+    signIn: guestProcedure
         .input(zodValidationSignIn)
-        .use(tRPCUserAuthMiddleware.isUserAlreadyAuth)
         .mutation(async ({ input, ctx }) => {
-            ctx.bodyInfo = { ...input }; // Store the original input for logging or debugging purposes
-            return await tRPCUserAuthMutationServices.signIn(ctx);
+            return await tRPCUserAuthMutationServices.signIn({ input, ctx });
         }),
 
-    sendCodeSignInOTP: publicProcedure
+    signUp: guestProcedure
+        .input(zodValidationSignUp)
+        .mutation(async ({ input, ctx }) => {
+            return await tRPCUserAuthMutationServices.signUp({ input, ctx });
+        }),
+
+    sendCodeSignInOTP: guestProcedure
         .input(zodValidationSendOTPToEmail)
-        .use(tRPCUserAuthMiddleware.isUserAlreadyAuth)
         .mutation(async ({ input, ctx }) => {
-            ctx.bodyInfo = { ...input }; // Store the original input for logging or debugging purposes
-            return await tRPCUserAuthMutationServices.sendCodeSignInOTP(ctx);
+            return await tRPCUserAuthMutationServices.sendCodeSignInOTP({ input, ctx });
         }),
 
-    resendCodeSignInOTP: publicProcedure
-        .use(tRPCUserAuthMiddleware.isUserAlreadyAuth)
+    resendCodeSignInOTP: guestProcedure
         .mutation(async ({ ctx }) => {
-            return await tRPCUserAuthMutationServices.resendCodeSignInOTP(ctx);
+            return await tRPCUserAuthMutationServices.resendCodeSignInOTP(ctx.c);
         }),
 
-    signInOTP: publicProcedure
+    signInOTP: guestProcedure
         .input(zodValidationSignInOTP)
-        .use(tRPCUserAuthMiddleware.isUserAlreadyAuth)
         .mutation(async ({ input, ctx }) => {
-            ctx.bodyInfo = { ...input }; // Store the original input for logging or debugging purposes
-            return await tRPCUserAuthMutationServices.signInOTP(ctx);
+            return await tRPCUserAuthMutationServices.signInOTP({ input, ctx });
         }),
 
-    signOut: publicProcedure
-        .use(tRPCUserAuthMiddleware.isUserAuth)
+    signOut: protectedProcedure
         .mutation(async ({ ctx }) => {
-            return await tRPCUserAuthMutationServices.signOut(ctx);
+            return await tRPCUserAuthMutationServices.signOut(ctx.c);
         }),
 
-    sendCodeResetPassword: publicProcedure
+    sendCodeResetPassword: guestProcedure
         .input(zodValidationSendOTPToEmail)
-        .use(tRPCUserAuthMiddleware.isUserAlreadyAuth)
         .mutation(async ({ input, ctx }) => {
-            ctx.bodyInfo = { ...input }; // Store the original input for logging or debugging purposes
-            return await tRPCUserAuthMutationServices.sendCodeResetPassword(ctx);
+            return await tRPCUserAuthMutationServices.sendCodeResetPassword({ input, ctx });
         }),
 
-    resendCodeResetPassword: publicProcedure
-        .use(tRPCUserAuthMiddleware.isUserAlreadyAuth)
+    resendCodeResetPassword: guestProcedure
         .mutation(async ({ ctx }) => {
-            return await tRPCUserAuthMutationServices.resendCodeResetPassword(ctx);
+            return await tRPCUserAuthMutationServices.resendCodeResetPassword(ctx.c);
         }),
 
-    resetPassword: publicProcedure
+    resetPassword: guestProcedure
         .input(zodValidationServerResetPassword)
-        .use(tRPCUserAuthMiddleware.isUserAlreadyAuth)
         .mutation(async ({ input, ctx }) => {
-            ctx.bodyInfo = { ...input }; // Store the original input for logging or debugging purposes
-            return await tRPCUserAuthMutationServices.resetPassword(ctx);
+            return await tRPCUserAuthMutationServices.resetPassword({ input, ctx });
         }),
 
-
-    getUserAuth: publicProcedure
-        .use(tRPCUserAuthMiddleware.isUserAuth)
+    getUserAuth: protectedProcedure
         .query(async ({ ctx }) => {
             try {
 
-                const userAuthInfo = ctx.userInfo ?? {};
+                const userAuthInfo = ctx.c.get("userInfo") ?? {};
 
-                return HandlerSuccess.success("User authentication information retrieved successfully?", userAuthInfo);
+                return HandlerSuccess.tRPCSuccess("User authentication information retrieved successfully?", userAuthInfo);
 
             } catch (error) {
-                throw tRPCErrorServices.tRPCError(error);
+                throw handleTRPCError(error);
             }
         })
 
