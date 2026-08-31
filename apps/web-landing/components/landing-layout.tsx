@@ -6,11 +6,11 @@ import AppBarPage from "./app-bar"
 import FooterPage from "./footer"
 
 
-interface AdminLayoutProps {
+interface LandingLayoutProps {
   children: React.ReactNode
 }
 
-const LandingLayoutPage = memo(({ children }: AdminLayoutProps) => {
+const LandingLayoutPage = memo(({ children }: LandingLayoutProps) => {
 
   const [mounted, setMounted] = useState(false);
 
@@ -22,6 +22,7 @@ const LandingLayoutPage = memo(({ children }: AdminLayoutProps) => {
     // Prevent hydration mismatch
     return null;
   }
+
   return (
     <>
       <main>

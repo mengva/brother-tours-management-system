@@ -12,9 +12,9 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
         fields: [customers.userId],
         references: [users.id],
     }),
-    enquiries: many(enquiries),
-    bookings: many(bookings),
-    payments: many(payments),
+    enquiries: many(enquiries, { relationName: 'customer_enquiries' }),
+    bookings: many(bookings, { relationName: 'customer_bookings' }),
+    payments: many(payments, { relationName: 'customer_payments' }),
     invoices: many(invoices, { relationName: 'customer_invoices' }),
 }));
 

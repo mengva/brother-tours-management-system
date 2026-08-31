@@ -1,34 +1,32 @@
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { redis } from "@/server/lib/redis";
 import { MailServices } from "@/server/lib/mail";
-import { CookieServices, HandlerSuccess, Helper, tokenName, tRPCErrorServices, type MailOptionsDto } from "@/server/utils";
-import type { ServerResponseDto, UserRoleDto } from "@/server/packages/types";
-import type { MyContext } from "@/server/server/trpc/context";
-import type { ZodValidationSendOTPToEmail, ZodValidationServerResetPassword, ZodValidationSignIn, ZodValidationSignInOTP } from "@/server/packages/validations";
+import { AppError, CookieServices, handleTRPCError, Helper, resetTokenName, resetTokenSignInName, tokenName, type MailOptionsDto } from "@/server/utils";
+import type { UserRoleDto } from "@/server/packages/types";
+import type { ZodValidationServerResetPassword } from "@/server/packages/validations";
 import db from "@/server/config/db";
-import { userCredentials, users } from "@/server/db";
+import { customers, userCredentials, users } from "@/server/db";
+import { getCookie, setCookie } from "hono/cookie";
+import { SendCodeResetPasswordDto, SendCodeSignInOTPDto, SignInDto, SignInOTPDto, SignUpDto } from "../types";
+import type { Context as HonoContext } from 'hono';
 
-export class tRPCAuthServices {
 
-    public static async signIn(ctx: MyContext): Promise<ServerResponseDto> {
+export class AuthServices {
+
+    public static async signIn({
+        email,
+        password,
+        userAgent,
+        deviceFingerprint
+    }: SignInDto): Promise<string> {
         try {
-            const info: ZodValidationSignIn = ctx.bodyInfo;
-            const userAgent = ctx.userAgent || null;
-
-            // 1. Validate if user agent exists
-            if (!userAgent) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message: "User agent is required for security verification"
-                });
-            }
 
             // 2. Query user by email, role, and active status
             // Removed userAgent from the 'where' clause to allow login from new devices
             const userInfo = await db.query.users.findFirst({
                 where: (users, { eq, and }) => and(
-                    eq(users.email, info.email),
+                    eq(users.email, email),
                     eq(users.isActive, true),
                 ),
                 with: {
@@ -38,21 +36,15 @@ export class tRPCAuthServices {
 
             // 3. Check if user exists
             if (!userInfo) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "Invalid credentials or account is inactive"
-                });
+                throw new AppError("Invalid credentials or account is inactive", "NOT_FOUND");
             }
 
             const passwordHash = userInfo.credentials?.passwordHash ?? "";
 
             // 4. Verify password with bcrypt
-            const match = await Helper.bcryptCompare(info.password, passwordHash);
+            const match = await Helper.bcryptCompare(password, passwordHash);
             if (!match) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid credentials"
-                });
+                throw new AppError("Invalid credentials", "UNAUTHORIZED");
             }
 
             // 5. Update the latest userAgent in the database
@@ -65,52 +57,63 @@ export class tRPCAuthServices {
             const userPayload = {
                 userId: userInfo.id,
                 role: userInfo.role as UserRoleDto,
-                userAgent: userAgent,
+                deviceFingerprint: deviceFingerprint,
             };
 
             // 7. Generate and set access token in cookies
             const token = await Helper.generateToken(userPayload);
 
-            ctx.setCookie(tokenName, token, CookieServices.cookieOption);
-
-            return HandlerSuccess.success("Sign in successful");
+            return token;
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
-    public static async signUp(ctx: MyContext): Promise<ServerResponseDto> {
+    public static async signUp({
+        email,
+        password,
+        phoneNumber,
+        whatsappNumber,
+        fullName,
+        gender,
+        userAgent,
+    }: SignUpDto) {
         try {
-            // 1. Parse payload context through schema safely
-            const info = ctx.bodyInfo;
-            const userAgent = ctx.userAgent || null;
-
-            // 2. Validate if user agent exists for security tracking
-            if (!userAgent) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message: "User agent is required for security verification",
-                });
-            }
 
             // 3. Prevent duplicate account states by matching unique structural anchors
             const existingUser = await db.query.users.findFirst({
                 where: (users, { or, eq }) =>
-                    or(
-                        eq(users.email, info.email),
-                        eq(users.phoneNumber, info.phoneNumber)
-                    ),
+                    and(
+                        or(
+                            eq(users.email, email),
+                            eq(users.phoneNumber, phoneNumber)
+                        ),
+                        eq(users.isActive, true)
+                    )
             });
 
             if (existingUser) {
-                throw new TRPCError({
-                    code: "CONFLICT",
-                    message: "Email or phone number already exists",
-                });
+                throw new AppError("Email or phone number already exists", "CONFLICT");
             }
 
+            const existingCustomer = (await db.query.customers.findFirst({
+                where: (customers, { or, eq }) =>
+                    or(
+                        eq(customers.email, email),
+                        eq(customers.phoneNumber, phoneNumber),
+                        eq(customers.whatsappNumber, whatsappNumber)
+                    ),
+                columns: {
+                    id: true,
+                    fullName: true,
+                    email: true,
+                    phoneNumber: true,
+                    whatsappNumber: true,
+                }
+            })) || null;
+
             // 4. Secure plain text secrets prior to persistence exposure bounds
-            const hashPassword = await Helper.bcryptHash(info.password);
+            const hashPassword = await Helper.bcryptHash(password);
 
             // 5. Execute unified isolation transaction boundaries
             return await db.transaction(async (tx) => {
@@ -118,10 +121,10 @@ export class tRPCAuthServices {
                 const [{ userId }] = await tx
                     .insert(users)
                     .values({
-                        fullName: info.fullName,
-                        email: info.email,
-                        phoneNumber: info.phoneNumber,
-                        gender: info.gender,
+                        fullName: fullName,
+                        email: email,
+                        phoneNumber: phoneNumber,
+                        gender: gender,
                         userAgent: userAgent,
                         role: "Customer" as UserRoleDto,
                         isActive: true,
@@ -130,23 +133,40 @@ export class tRPCAuthServices {
                         userId: users.id,
                     });
 
+                if (!existingCustomer) {
+                    await tx.insert(customers).values({
+                        userId,
+                        fullName: fullName,
+                        email: email,
+                        phoneNumber: phoneNumber,
+                        gender: gender,
+                        whatsappNumber: whatsappNumber
+                    });
+                } else {
+                    await tx.update(customers).set({
+                        userId,
+                    });
+                }
                 // Step B: Bind isolation login security data bounds
                 await tx.insert(userCredentials).values({
                     userId,
                     passwordHash: hashPassword,
                 });
 
-                return HandlerSuccess.success("SignUp successfully");
+                return {
+                    userId
+                };
             });
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
-    public static async sendCodeSignInOTP(ctx: MyContext) {
+    public static async sendCodeSignInOTP({
+        email,
+        ctx
+    }: SendCodeSignInOTPDto) {
         try {
-            const { email }: ZodValidationSendOTPToEmail = ctx.bodyInfo;
-
             // 1. Check if user exists in the Database
             const user = await db.query.users.findFirst({
                 where: (users, { eq, and }) => and(
@@ -156,53 +176,42 @@ export class tRPCAuthServices {
             });
 
             if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "User not found"
-                });
+                throw new AppError("User not found", "NOT_FOUND");
             }
 
             // 2. Generate a 6-digit random code
             const otpCode = Helper.generateOTP(); // e.g., "123456"
 
-            return await db.transaction(async (tx) => {
+            // 3. Store in Redis with an expiration (e.g.,   300 seconds)
+            // Key format: "reset_password:email@example.com"
+            const resetToken = crypto.randomUUID(); // raomdom token for reset password session
+            await redis.set(`reset_email_sign_in:${resetToken}`, email, { ex: 300 }); // get email in token
+            await redis.set(`sign_in_otp:${email}`, otpCode, { ex: 60 }) // get otp code
 
-                // 3. Store in Redis with an expiration (e.g.,   300 seconds)
-                // Key format: "reset_password:email@example.com"
-                const resetToken = crypto.randomUUID(); // raomdom token for reset password session
-                await redis.set(`reset_email_sign_in:${resetToken}`, email, { ex: 300 }); // get email in token
-                await redis.set(`sign_in_otp:${email}`, otpCode, { ex: 60 }) // get otp code
+            setCookie(ctx, resetTokenSignInName, resetToken, {
+                httpOnly: true,
+                secure: true,
+                maxAge: 300 // 5 minutes
+            })
 
-                ctx.setCookie("reset_token_sign_in", resetToken, {
-                    httpOnly: true,
-                    secure: true,
-                    maxAge: 300 // 5 minutes
-                });
+            // 4. SEND THE EMAIL using our new Helper
+            const emailSent = MailServices.sendResetCodeEmailSignIn(email, otpCode) as MailOptionsDto;
 
-                // 4. SEND THE EMAIL using our new Helper
-                const emailSent = MailServices.sendResetCodeEmailSignIn(email, otpCode) as MailOptionsDto;
+            if (!emailSent) {
+                throw new AppError("Failed to send email. Please try again later.", "INTERNAL_SERVER_ERROR");
+            }
 
-                if (!emailSent) {
-                    throw new TRPCError({
-                        code: "INTERNAL_SERVER_ERROR",
-                        message: "Failed to send email. Please try again later."
-                    });
-                }
-
-                const transporter = Helper.transporter();
-                await transporter.sendMail(emailSent);
-
-                return HandlerSuccess.success("Reset code sent to your email successfully");
-            });
+            const transporter = Helper.transporter();
+            await transporter.sendMail(emailSent);
 
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
-    public static async resendCodeSignInOTP(ctx: MyContext) {
+    public static async resendCodeSignInOTP(ctx: HonoContext) {
         try {
-            const tokenFromCookie = ctx.getCookie("reset_token_sign_in");
+            const tokenFromCookie = getCookie(ctx, resetTokenSignInName);
             const emailFromRedis = await redis.get(`reset_email_sign_in:${tokenFromCookie}`); // Get email associated with the OTP code
 
             if (!emailFromRedis) {
@@ -214,48 +223,35 @@ export class tRPCAuthServices {
             const emailSent = MailServices.sendResetCodeEmailSignIn(emailFromRedis as string, otpCode) as MailOptionsDto;
 
             if (!emailSent) {
-                throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
-                    message: "Failed to send email. Please try again later."
-                });
+                throw new AppError("Failed to send email. Please try again later.", "INTERNAL_SERVER_ERROR");
             }
 
             const transporter = Helper.transporter();
             await transporter.sendMail(emailSent);
-
-            return HandlerSuccess.success("Reset code sent to your email successfully");
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
-    public static async signInOTP(ctx: MyContext): Promise<ServerResponseDto> {
+    public static async signInOTP({
+        code,
+        ctx,
+        userAgent,
+        deviceFingerprint
+    }: SignInOTPDto) {
         try {
-            const info: ZodValidationSignInOTP = ctx.bodyInfo;
-            const userAgent = ctx.userAgent || null;
 
-            const tokenFromCookie = ctx.getCookie("reset_token_sign_in");
+            const tokenFromCookie = getCookie(ctx, resetTokenSignInName);
             const emailFromRedis = await redis.get(`reset_email_sign_in:${tokenFromCookie}`); // Get email associated with the OTP code
 
             if (!emailFromRedis) {
-                throw new TRPCError({ code: "UNAUTHORIZED", message: "Session expired" });
-            }
-
-            // 1. Validate if user agent exists
-            if (!userAgent) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message: "User agent is required for security verification"
-                });
+                throw new AppError("Session expired", "UNAUTHORIZED");
             }
 
             // 2. verify OTP code with Redis
             const storedCode = await redis.get(`sign_in_otp:${emailFromRedis as string}`);
-            if (!storedCode || storedCode !== info.code) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Invalid or expired OTP code"
-                });
+            if (!storedCode || storedCode !== code) {
+                throw new AppError("Invalid or expired OTP code", "UNAUTHORIZED");
             }
 
             // 3. Query user by email, role, and active status
@@ -269,10 +265,7 @@ export class tRPCAuthServices {
 
             // 4. Check if user exists
             if (!userInfo) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "Invalid credentials or account is inactive"
-                });
+                throw new AppError("Invalid credentials or account is inactive", "NOT_FOUND");
             }
 
             // 5. Update the latest userAgent in the database
@@ -285,7 +278,7 @@ export class tRPCAuthServices {
             const userPayload = {
                 userId: userInfo.id,
                 role: userInfo.role,
-                userAgent: userAgent,
+                deviceFingerprint: deviceFingerprint,
             };
 
             // 7. Generate and set access token in cookies
@@ -293,53 +286,45 @@ export class tRPCAuthServices {
 
             await redis.del(`sign_in_otp:${emailFromRedis as string}`); // Clear OTP from Redis after successful login
             await redis.del(`reset_email_sign_in:${tokenFromCookie}`);
-            ctx.setCookie("reset_token_sign_in", "", { maxAge: 0 }); // Clear the OTP session cookie
+            setCookie(ctx, resetTokenSignInName, "", { maxAge: 0 }); // Clear the OTP session cookie
 
-            ctx.setCookie(tokenName, token, CookieServices.cookieOption);
-
-            return HandlerSuccess.success("OTP Sign in successful");
+            setCookie(ctx, tokenName, token, CookieServices.option);
 
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
     public static async generateCodeResetPassword(email: string) {
         try {
-            // 2. Generate a 6-digit random code
-            const resetCode = Helper.generateOTP(); // e.g., "123456"
+            // 1. Generate 6-digit OTP
+            const resetCode = Helper.generateOTP(); // e.g. "123456"
 
-            return await db.transaction(async (tx) => {
+            // 2. Prepare email first
+            const emailOptions = MailServices.sendResetCodeEmail(email, resetCode) as MailOptionsDto;
 
-                // 3. Store in Redis with an expiration (e.g., 5 minutes / 300 seconds)
-                // Key format: "reset_password:email@example.com"
-                await redis.set(`reset_password:${email}`, resetCode, { ex: 60 });
+            if (!emailOptions) {
+                throw new AppError("Failed to prepare email. Please try again later.", "INTERNAL_SERVER_ERROR");
+            }
 
-                // 4. SEND THE EMAIL using our new Helper
-                const emailSent = MailServices.sendResetCodeEmail(email, resetCode) as MailOptionsDto;
+            // 3. Send email
+            const transporter = Helper.transporter();
+            await transporter.sendMail(emailOptions);
 
-                if (!emailSent) {
-                    throw new TRPCError({
-                        code: "INTERNAL_SERVER_ERROR",
-                        message: "Failed to send email. Please try again later."
-                    });
-                }
-
-                const transporter = Helper.transporter();
-                await transporter.sendMail(emailSent);
-
-                return HandlerSuccess.success("Reset code sent to your email");
-            });
+            // 4. Only save to Redis AFTER email is successfully sent
+            await redis.set(`reset_password:${email}`, resetCode, { ex: 60 }); // 60 seconds
 
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
     // using to send OTP code to email for sign in and reset password, so no need to check user agent and role here
-    public static async sendCodeResetPassword(ctx: MyContext) {
+    public static async sendCodeResetPassword({
+        email,
+        ctx
+    }: SendCodeResetPasswordDto) {
         try {
-            const { email }: ZodValidationSendOTPToEmail = ctx.bodyInfo;
 
             // 1. Check if user exists in the Database
             const user = await db.query.users.findFirst({
@@ -352,68 +337,68 @@ export class tRPCAuthServices {
             // Security Tip: Don't reveal if email exists or not
             // Just say "If an account exists, an email has been sent"
             if (!user) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "If an account exists with that email, a reset code has been sent"
-                });
+                throw new AppError("If an account exists with that email, a reset code has been sent", "NOT_FOUND");
             }
 
-            return await db.transaction(async (tx) => {
+            await this.generateCodeResetPassword(email);
+            const resetToken = crypto.randomUUID(); // raomdom token for reset password session
+            await redis.set(`reset_session:${resetToken}`, email, { ex: 300 }); // get email in token
 
-                const resetToken = crypto.randomUUID(); // raomdom token for reset password session
-                await redis.set(`reset_session:${resetToken}`, email, { ex: 300 }); // get email in token
-
-                ctx.setCookie("reset_token", resetToken, {
-                    httpOnly: true,
-                    secure: true,
-                    maxAge: 300 // 5 minutes
-                });
-
-                return await this.generateCodeResetPassword(email);
-
+            setCookie(ctx, resetTokenName, resetToken, {
+                httpOnly: true,
+                secure: true,
+                maxAge: 300 // 5 minutes
             });
 
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
-    public static async resendCodeResetPassword(ctx: MyContext) {
+    public static async resendCodeResetPassword(ctx: HonoContext) {
         try {
-            // 1.  Forgot Password (send OTP)
+            // 1. Get reset session token from cookie
+            const reset_token = getCookie(ctx, resetTokenName);
 
-            // 2. Reset Password (Verify)
-            const reset_token = ctx.getCookie("reset_token");
-            const emailFromRedis = await redis.get(`reset_session:${reset_token}`) as string || "unknown" || null;
-
-            if (!emailFromRedis) {
-                throw new TRPCError({ code: "UNAUTHORIZED", message: "Session expired" });
+            if (!reset_token) {
+                throw new AppError("Session expired or invalid", "UNAUTHORIZED");
             }
 
+            // 2. Get email from Redis session
+            const emailFromRedis = await redis.get(`reset_session:${reset_token}`);
+
+            if (!emailFromRedis) {
+                throw new AppError("Session expired", "UNAUTHORIZED");
+            }
+
+            // 3. Resend OTP
             return await this.generateCodeResetPassword(emailFromRedis as string);
 
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 
-    public static async resetPassword(ctx: MyContext) {
+    public static async resetPassword({
+        input,
+        ctx
+    }: {
+        input: ZodValidationServerResetPassword;
+        ctx: HonoContext;
+    }) {
         try {
             // 1. Extract validation data from request body
             // Note: Email is no longer required in the body for enhanced security.
-            const { code, password }: ZodValidationServerResetPassword = ctx.bodyInfo;
+            const { code, password } = input as ZodValidationServerResetPassword;
 
             // 2. Retrieve the reset session from the secure cookie
-            const resetToken = ctx.getCookie("reset_token");
+            const resetToken = getCookie(ctx, resetTokenName);
 
             // 3. Look up the associated email from Redis using the token
             const email = await redis.get(`reset_session:${resetToken}`) as string || null;
 
             if (!email) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "Reset session has expired. Please restart the process."
-                });
+                throw new AppError("Reset session has expired. Please restart the process.", "UNAUTHORIZED");
             }
 
             const userInfo = await db.query.users.findFirst({
@@ -424,20 +409,14 @@ export class tRPCAuthServices {
             });
 
             if (!userInfo) {
-                throw new TRPCError({
-                    code: "UNAUTHORIZED",
-                    message: "User not found"
-                });
+                throw new AppError("User not found", "NOT_FOUND");
             }
 
             // 4. Verify the OTP (One-Time Password) from Redis
             const storedCode = await redis.get(`reset_password:${email}`) as string || null;
 
             if (!storedCode || storedCode !== code) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message: "Invalid or expired reset code."
-                });
+                throw new AppError("Invalid or expired reset code.", "BAD_REQUEST");
             }
 
             // 5. Hash the new password before storing it
@@ -453,12 +432,10 @@ export class tRPCAuthServices {
             await redis.del(`reset_session:${resetToken}`);
 
             // 8. Clear the secure reset cookie from the client's browser
-            ctx.setCookie("reset_token", "", { maxAge: 0 });
-
-            return HandlerSuccess.success("Password has been reset successfully.");
+            setCookie(ctx, resetTokenName, "", { maxAge: 0 });
 
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error);
         }
     }
 }
