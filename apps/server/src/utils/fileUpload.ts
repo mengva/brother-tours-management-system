@@ -1,8 +1,8 @@
 import { env } from '@/server/config/env';
 import { v2 as cloudinary } from 'cloudinary';
-import { tRPCErrorServices } from './handleTRPCError';
 import type { FileDto } from '@/server/packages/types';
 import { SecureFileUploadServices } from '@/server/packages/utils';
+import { handleTRPCError } from './errorMapper';
 
 cloudinary.config({
     cloud_name: env('CLOUDINARY_NAME'),
@@ -65,7 +65,7 @@ export class FileUploadServices {
                 cloudinaryId: result.public_id
             };
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error)
         }
     }
 
@@ -80,7 +80,7 @@ export class FileUploadServices {
             );
             return resultFiles;
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error)
         }
     }
 
@@ -91,7 +91,7 @@ export class FileUploadServices {
             const resultFile = await this.validationFileAndUploadFunc(file, this.uploadCloudinaryImageFunc);
             return resultFile;
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error)
         }
     }
 
@@ -102,7 +102,7 @@ export class FileUploadServices {
             const resultFile = await this.validationFileAndUploadFunc(file, this.uploadCloudinaryPDFFileFunc);
             return resultFile;
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error)
         }
     }
 
@@ -117,7 +117,7 @@ export class FileUploadServices {
             );
             return resultFiles;
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error)
         }
     }
 
@@ -153,7 +153,7 @@ export class FileUploadServices {
             );
             return result;
         } catch (error) {
-            throw tRPCErrorServices.tRPCError(error);
+            throw handleTRPCError(error)
         }
     }
 }

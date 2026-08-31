@@ -110,7 +110,7 @@ const AdminLayoutPage = memo(({ children }: AdminLayoutProps) => {
     return null;
   }
 
-  if (isLoading || isRefetching) {
+  if (isLoading || isRefetching || navigationItems.length === 0 || !user) {
     return <LoadingSpinnerComponent />
   }
 

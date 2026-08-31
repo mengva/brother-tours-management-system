@@ -1,28 +1,20 @@
 import { FileDto } from "../types";
-import { maxFileSize } from "./constants";
+import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "../validations";
 
 export class SecureFileUploadServices {
 
-    public static readonly IMAGE_FILE_TYPE = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+    public static readonly IMAGE_FILE_TYPE = ALLOWED_FILE_TYPES;
 
-    public static readonly ALLOWED_PDF_FILE_SIGNATURES = {
-        '25504446': 'application/pdf', // PDF file
-    };
-
-    public static readonly ALLOWED_IMAGE_FILE_SIGNATURES = {
-        'ffd8ff': 'image/jpeg',      // JPEG file
-        '89504e': 'image/png',       // PNG file
-        '474946': 'image/jpg',       // GIF signature but mapped to jpg
-        '52494646': 'image/webp',    // WEBP file
-    };
-
-    public static readonly ALLOWED_FILE_SIGNATURES = {
-        ...this.ALLOWED_PDF_FILE_SIGNATURES,
-        ...this.ALLOWED_IMAGE_FILE_SIGNATURES,
+    public static ALLOWED_FILE_SIGNATURES: Record<string, string> = {
+        "25504446": "application/pdf", // PDF
+        "ffd8ff": "image/jpeg",        // JPEG / JPG
+        "89504e47": "image/png",       // PNG
+        "47494638": "image/gif",       // GIF
+        "52494646": "image/webp",      // WEBP (RIFF)
     };
 
     public static validationFile(file: FileDto): { valid: boolean; error?: string } {
-        if (file.size > maxFileSize) {
+        if (file.size > MAX_FILE_SIZE) {
             return { valid: false, error: 'File size exceeds 10MB limit' };
         }
         // ตรวจสอบ file signature

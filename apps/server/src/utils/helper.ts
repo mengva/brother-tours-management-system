@@ -3,11 +3,13 @@ import { env } from "../config/env";
 import * as jwt from "jsonwebtoken";
 import * as nodemailer from "nodemailer";
 import type { UserRoleDto } from "@/server/packages/types";
+import { sign, verify } from 'hono/jwt';
 
 interface PayloadDto {
     userId: string;
     role: UserRoleDto;
-    userAgent: string;
+    // userAgent: string;
+    deviceFingerprint: string;
 }
 
 export interface MailOptionsDto {
@@ -18,6 +20,23 @@ export interface MailOptionsDto {
 }
 
 export class Helper {
+
+    public static async generateTokenWithHono(payload: PayloadDto): Promise<string> {
+        const secret = env("USER_SECRET");
+        const expiresIn = env("ACCESS_TOKEN_EXPIRES_IN"); // Example: "1d" or "24h"
+
+        if (!secret || !expiresIn) {
+            throw new Error("Secret key or expiration time is not defined in environment variables");
+        }
+
+        const token = await sign({
+            ...payload,
+            alg: env("ALGORITHM") as jwt.Algorithm,
+            exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // Example: 30 day expiration
+        }, secret);
+        
+        return token;
+    }
 
     public static async generateToken(payload: PayloadDto): Promise<string> {
         const secret = env("USER_SECRET");

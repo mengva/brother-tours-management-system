@@ -3,25 +3,27 @@ import { CookieServices, HandlerSuccess, Helper, tokenName } from "../utils";
 import { Context as HonoContext } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import type { UserRoleDto } from "@/server/packages/types";
+import { getDeviceFingerPrint } from "../server/trpc/context";
 
 interface PayloadDto {
     userId: string;
     role: string;
-    userAgent: string;
+    // userAgent: string;
+    deviceFingerprint: string
     exp: number; // Expiration time in seconds since the epoch
     iat: number;
 }
 
 export class RefreshTokenMiddleware {
 
-    public static async refreshToken(oldToken: string, currentUA: string) {
+    public static async refreshToken(oldToken: string, deviceFingerprint: string) {
         try {
             // 1. Verify and get payload
-            const payload = await Helper.verifyTokenSecret(oldToken) as PayloadDto;
+            const payload = (await Helper.verifyTokenSecret(oldToken)) as PayloadDto;
 
-            if (payload.userAgent !== currentUA) {
+            if (payload.deviceFingerprint !== deviceFingerprint) {
                 console.warn("User agent mismatch. Possible token theft attempt.");
-                return { action: "ERROR", token: oldToken, role: null };
+                return { action: "ERROR", token: null, role: null };
             }
 
             // --- NEW LOGIC: CHECK REMAINING TIME ---
@@ -51,29 +53,30 @@ export class RefreshTokenMiddleware {
             const newToken = await Helper.generateToken({
                 userId: user.id,
                 role: user.role as UserRoleDto,
-                userAgent: currentUA,
+                deviceFingerprint,
             });
 
             return { action: "REFRESHED", token: newToken, role: user.role };
 
         } catch (error) {
-            return { action: "ERROR", token: oldToken, role: null };
+            return { action: "ERROR", token: null, role: null };
         }
     }
 
     public static async refreshUserToken(ctx: HonoContext) {
         // ... (Keep the role and cookie logic same as before) ...
         const oldToken = getCookie(ctx, tokenName);
-        const currentUA = ctx.req.header("user-agent") || "";
+        // const currentUA = ctx.req.header("user-agent") || "";
+        const deviceFingerprint = getDeviceFingerPrint(ctx);
 
-        if (!oldToken) {
-            console.warn("No session found");
+        if (!oldToken || !deviceFingerprint) {
+            console.warn("No active session or device identity found.");
             return;
         }
 
         try {
 
-            const result = await this.refreshToken(oldToken, currentUA);
+            const result = await this.refreshToken(oldToken, deviceFingerprint);
 
             // Only set a new cookie if the action is "REFRESHED"
             if (result.action === "REFRESHED" && result.role) {
@@ -84,12 +87,12 @@ export class RefreshTokenMiddleware {
                     return;
                 }
 
-                setCookie(ctx, tokenName, result.token, CookieServices.cookieOption);
-                return HandlerSuccess.success("Token has been extended for another period");
+                setCookie(ctx, tokenName, result.token, CookieServices.option);
+                return HandlerSuccess.tRPCSuccess("Token has been extended for another period");
             }
 
             // If action is "NONE", just return success without updating cookie
-            return HandlerSuccess.success("Token is still valid for more than 7 days");
+            return HandlerSuccess.tRPCSuccess("Token is still valid for more than 7 days");
 
         } catch (error) {
             console.warn("Refresh Token Error:", error);

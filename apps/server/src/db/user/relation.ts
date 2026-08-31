@@ -9,7 +9,6 @@ import { priceHistories } from "../priceHistories";
 import { invoices } from "../invoices";
 import { payments } from "../payment";
 
-
 export const usersRelations = relations(users, ({ one, many }) => ({
     credentials: one(userCredentials, {
         fields: [users.id],
