@@ -52,13 +52,14 @@ export const ALLOWED_FILE_SIGNATURES: Record<string, string> = {
 
 // Functions
 
-export const zodSanitizeInput = (schema: z.ZodString) =>
+
+export const zodSanitizeInput = (inputName: string) => (schema: z.ZodString) =>
     schema
         .refine((val) => !forbiddenHtmlRegex.test(val), {
-            message: "Input cannot contain HTML tags (<, >).",
+            message: `${inputName} cannot contain HTML tags (<, >).`,
         })
         .refine((val) => !forbiddenLinkRegex.test(val), {
-            message: "Input cannot contain links (http://, https://, www.).",
+            message: `${inputName} cannot contain links (http://, https://, www.).`,
         });
 
 

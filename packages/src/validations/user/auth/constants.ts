@@ -2,12 +2,12 @@ import z from "zod"
 import { forbiddenHtmlRegex, forbiddenLinkRegex, zodSanitizeInput } from "../../constants";
 
 // variable const
-export const zodValidationStr = zodSanitizeInput(
+export const zodValidationStr = zodSanitizeInput("String")(
     z.string().min(2, "Input should be 2 characters")
         .nonempty("Input is required")
 )
 
-export const zodValidationEmail = zodSanitizeInput(
+export const zodValidationEmail = zodSanitizeInput("Email")(
     z.string()
         .email("Invalid email formatter")
         .nonempty("Email is required")
@@ -27,7 +27,7 @@ export const zodValidationPassword = z.string()
     .regex(/^(?=.*[A-Z])/, "must contain uppercase letter")
     .regex(/^(?=.*\d)/, "must contain number")
     .regex(/^(?=.*[@$!%*?&])/, "must contain special character")
-    
+
 export const zodValidationConfirmPassword = z.string()
     .nonempty("Confirm password is required")
     .min(6, "Confirm password must be at least 6 characters")
@@ -63,7 +63,7 @@ export const zodValidationBirthday = z.string()
         return date >= minDate;
     }, "Age should not exceed 120 years.");
 
-export const zodValidationOTPCode = zodSanitizeInput(
+export const zodValidationOTPCode = zodSanitizeInput("OTP")(
     z.string()
         .length(6, 'OTP must be exactly 6 digits')
         .regex(/^\d+$/, 'OTP must contain only numbers')
@@ -147,36 +147,36 @@ export const zodValidationWhatsAppPhoneNumber = z
         }
     );
 
-export const zodValidationSearchQuery = zodSanitizeInput(
+export const zodValidationSearchQuery = zodSanitizeInput("Search Query")(
     z.string()
 )
 
-export const zodValidationFullName = zodSanitizeInput(
+export const zodValidationFullName = zodSanitizeInput("FullName")(
     z.string()
         .nonempty("FullName is required")
 )
 
-export const zodValidationFirstName = zodSanitizeInput(
+export const zodValidationFirstName = zodSanitizeInput("FirstName")(
     z.string()
         .nonempty("FirstName is required")
 )
 
-export const zodValidationLastName = zodSanitizeInput(
+export const zodValidationLastName = zodSanitizeInput("LastName")(
     z.string()
         .nonempty("LastName is required")
 )
 
-export const zodValidationVillage = zodSanitizeInput(
+export const zodValidationVillage = zodSanitizeInput("Village")(
     z.string()
         .nonempty("Village is required")
 )
 
-export const zodValidationDistrict = zodSanitizeInput(
+export const zodValidationDistrict = zodSanitizeInput("District")(
     z.string()
         .nonempty("District is required")
 )
 
-export const zodValidationProvince = zodSanitizeInput(
+export const zodValidationProvince = zodSanitizeInput("Province")(
     z.string()
         .nonempty("Province is required")
 )
