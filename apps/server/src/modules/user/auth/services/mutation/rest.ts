@@ -8,7 +8,10 @@ import { SignInDto } from "../../types";
 export class HonoUserAuthMutationServices {
   public static async signIn(ctx: HonoContext, body: ZodValidationSignIn) {
     try {
-      const token = await AuthServices.signIn({
+      const {
+        token,
+        message
+      } = await AuthServices.signIn({
         ...body,
         userAgent: ctx.get("userAgent") || "",
         deviceFingerprint: ctx.get("deviceFingerprint") || ""
@@ -18,7 +21,7 @@ export class HonoUserAuthMutationServices {
 
       return ctx.json({
         success: true,
-        message: "Sign in successful"
+        message
       }, 201);
       
     } catch (error) {

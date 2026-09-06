@@ -55,7 +55,7 @@ export const zodValidationClientResetPassword = z.object({
 export const zodValidationServerResetPassword = z.object({
     code: zodValidationOTPCode,
     password: zodValidationPassword,
-})
+});
 
 export type ZodValidationSignIn = z.infer<typeof zodValidationSignIn>;
 export type ZodValidationClientSignIn = z.infer<typeof zodValidationClientSignIn>;

@@ -19,7 +19,7 @@ export class AuthServices {
         password,
         userAgent,
         deviceFingerprint
-    }: SignInDto): Promise<string> {
+    }: SignInDto): Promise<{ token: string; message: string }> {
         try {
 
             // 2. Query user by email, role, and active status
@@ -63,7 +63,10 @@ export class AuthServices {
             // 7. Generate and set access token in cookies
             const token = await Helper.generateToken(userPayload);
 
-            return token;
+            return {
+                token,
+                message: "Sign-in successful"
+            };
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -154,7 +157,8 @@ export class AuthServices {
                 });
 
                 return {
-                    userId
+                    userId,
+                    message: "User registered successfully"
                 };
             });
         } catch (error) {
@@ -204,6 +208,11 @@ export class AuthServices {
             const transporter = Helper.transporter();
             await transporter.sendMail(emailSent);
 
+            return {
+                userId: user.id,
+                message: "If an account exists with that email, a reset code has been sent"
+            }
+
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -228,6 +237,11 @@ export class AuthServices {
 
             const transporter = Helper.transporter();
             await transporter.sendMail(emailSent);
+
+            return {
+                email: emailFromRedis,
+                message: "If an account exists with that email, a reset code has been sent"
+            }
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -290,6 +304,12 @@ export class AuthServices {
 
             setCookie(ctx, tokenName, token, CookieServices.option);
 
+            return {
+                userId: userInfo.id,
+                token: token,
+                message: "Sign-in successful"
+            }
+
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -313,6 +333,11 @@ export class AuthServices {
 
             // 4. Only save to Redis AFTER email is successfully sent
             await redis.set(`reset_password:${email}`, resetCode, { ex: 60 }); // 60 seconds
+
+            return {
+                email: emailOptions,
+                message: "If an account exists with that email, a reset code has been sent"
+            }
 
         } catch (error) {
             throw handleTRPCError(error);
@@ -349,6 +374,11 @@ export class AuthServices {
                 secure: true,
                 maxAge: 300 // 5 minutes
             });
+
+            return {
+                userId: user.id,
+                message: "If an account exists with that email, a reset code has been sent"
+            }
 
         } catch (error) {
             throw handleTRPCError(error);
@@ -433,6 +463,11 @@ export class AuthServices {
 
             // 8. Clear the secure reset cookie from the client's browser
             setCookie(ctx, resetTokenName, "", { maxAge: 0 });
+
+            return {
+                userId: userInfo.id,
+                message: "Password reset successful."
+            }
 
         } catch (error) {
             throw handleTRPCError(error);

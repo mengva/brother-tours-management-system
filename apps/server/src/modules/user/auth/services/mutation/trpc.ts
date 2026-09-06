@@ -8,7 +8,7 @@ import { ZodValidationSendOTPToEmail, ZodValidationServerResetPassword, ZodValid
 import { MyContext } from "@/server/server/trpc/context";
 
 export class tRPCUserAuthMutationServices {
-    
+
     public static async signIn({
         input,
         ctx
@@ -17,14 +17,17 @@ export class tRPCUserAuthMutationServices {
         ctx: MyContext;
     }): Promise<ServerResponseDto | void> {
         try {
-            const token = await AuthServices.signIn({
+            const {
+                token,
+                message
+            } = await AuthServices.signIn({
                 ...input,
                 userAgent: ctx.c.get("userAgent") || "",
                 deviceFingerprint: ctx.c.get("deviceFingerprint") || ""
             } as SignInDto);
 
             setCookie(ctx.c, tokenName, token, CookieServices.option);
-            return HandlerSuccess.tRPCSuccess("Sign in successful");
+            return HandlerSuccess.tRPCSuccess(message);
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -39,17 +42,13 @@ export class tRPCUserAuthMutationServices {
     }): Promise<ServerResponseDto | void> {
         try {
             const { confirmPassword, ...data } = input;
-            const { userId } = await AuthServices.signUp({
+            const { message } = await AuthServices.signUp({
                 ...data,
                 userAgent: ctx.c.get("userAgent") || "",
                 deviceFingerprint: ctx.c.get("deviceFingerprint") || ""
             } as SignUpDto);
 
-            if(!userId){
-               throw new AppError("Failed to create a new user", "BAD_REQUEST"); 
-            }
-
-            return HandlerSuccess.tRPCSuccess("SignUp successfully");
+            return HandlerSuccess.tRPCSuccess(message);
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -63,12 +62,14 @@ export class tRPCUserAuthMutationServices {
         ctx: MyContext;
     }): Promise<ServerResponseDto | void> {
         try {
-            await AuthServices.sendCodeSignInOTP({
+            const {
+                message
+            } = await AuthServices.sendCodeSignInOTP({
                 email: input.email,
                 ctx: ctx.c
             } as SendCodeSignInOTPDto);
 
-            return HandlerSuccess.tRPCSuccess("Sent code to your email successfully");
+            return HandlerSuccess.tRPCSuccess(message);
 
         } catch (error) {
             throw handleTRPCError(error);
@@ -77,9 +78,9 @@ export class tRPCUserAuthMutationServices {
 
     public static async resendCodeSignInOTP(ctx: HonoContext): Promise<ServerResponseDto | void> {
         try {
-            await AuthServices.resendCodeSignInOTP(ctx);
+            const { message } = await AuthServices.resendCodeSignInOTP(ctx);
 
-            return HandlerSuccess.tRPCSuccess("Resend code sent to your email successfully");
+            return HandlerSuccess.tRPCSuccess(message);
 
         } catch (error) {
             throw handleTRPCError(error);
@@ -95,13 +96,13 @@ export class tRPCUserAuthMutationServices {
         ctx: MyContext;
     }): Promise<ServerResponseDto | void> {
         try {
-            await AuthServices.signInOTP({
+            const { message } = await AuthServices.signInOTP({
                 code: input.code,
                 ctx: ctx.c,
                 deviceFingerprint: ctx.c.get("deviceFingerprint") || ""
             } as SignInOTPDto);
 
-            return HandlerSuccess.tRPCSuccess("OTP Sign in successful");
+            return HandlerSuccess.tRPCSuccess(message);
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -135,12 +136,12 @@ export class tRPCUserAuthMutationServices {
         ctx: MyContext;
     }): Promise<ServerResponseDto | void> {
         try {
-            await AuthServices.sendCodeResetPassword({
+            const { message } = await AuthServices.sendCodeResetPassword({
                 email: input.email,
                 ctx: ctx.c
             } as SendCodeResetPasswordDto);
 
-            return HandlerSuccess.tRPCSuccess("Reset code sent to your email successfully");
+            return HandlerSuccess.tRPCSuccess(message);
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -149,9 +150,9 @@ export class tRPCUserAuthMutationServices {
     // This method is for users who forgot their password and want to reset it using OTP sent to their email
     public static async resendCodeResetPassword(ctx: HonoContext): Promise<ServerResponseDto | void> {
         try {
-            await AuthServices.resendCodeResetPassword(ctx);
+            const { message } = await AuthServices.resendCodeResetPassword(ctx);
 
-            return HandlerSuccess.tRPCSuccess("Reset code sent to your email successfully");
+            return HandlerSuccess.tRPCSuccess(message);
         } catch (error) {
             throw handleTRPCError(error);
         }
@@ -165,12 +166,12 @@ export class tRPCUserAuthMutationServices {
         ctx: MyContext;
     }): Promise<ServerResponseDto | void> {
         try {
-            await AuthServices.resetPassword({
+            const { message } = await AuthServices.resetPassword({
                 input,
                 ctx: ctx.c
             });
 
-            return HandlerSuccess.tRPCSuccess("Password has been reset successfully.");
+            return HandlerSuccess.tRPCSuccess(message);
         } catch (error) {
             throw handleTRPCError(error);
         }
