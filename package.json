@@ -8,7 +8,7 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
-    "start:server": "cd apps/server && bun --hot src/server/index.ts",
+    "start:server": "cd apps/server && bun --hot src/server/server.ts",
     "db:push": "cd apps/server && bunx drizzle-kit push",
     "db:generate": "cd apps/server && bunx drizzle-kit generate",
     "db:migrate": "cd apps/server && bunx drizzle-kit migrate",
